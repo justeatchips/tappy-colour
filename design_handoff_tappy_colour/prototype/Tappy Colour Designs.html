@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Tappy Colour — Design Explorations</title>
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&family=Baloo+2:wght@500;600;700;800&family=Quicksand:wght@400;500;600;700&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet"/>
+
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--tc-body, "Nunito", system-ui, sans-serif);
+    --tc-display: "Fredoka", system-ui, sans-serif;
+    --tc-body: "Nunito", system-ui, sans-serif;
+    background: #f0eee9;
+    color: #2a251f;
+  }
+  @keyframes tcConfetti {
+    0% { transform: translateY(-20px) rotate(0); opacity: 0; }
+    20% { opacity: 1; }
+    100% { transform: translateY(60vh) rotate(720deg); opacity: 0.4; }
+  }
+  @keyframes tcMascotBob {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50% { transform: translateY(-4px) rotate(2deg); }
+  }
+</style>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="tc/tokens.jsx"></script>
+<script type="text/babel" src="tc/atoms.jsx"></script>
+<script type="text/babel" src="tc/screens-squishy.jsx"></script>
+<script type="text/babel" src="tc/screens-paper.jsx"></script>
+<script type="text/babel" src="tc/pixel-atoms.jsx"></script>
+<script type="text/babel" src="tc/screens-pixel.jsx"></script>
+
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState } = React;
+
+function App() {
+  // Pick default mascot for the explorations
+  const mascot = TC_MASCOTS[1]; // Rosie the bunny — feels most kid-friendly default
+
+  // Theme assigned per direction so each direction also explores a different palette family.
+  const themeA = TC_THEMES.candy;   // Squishy → candy
+  const themeB = TC_THEMES.cream;   // Paper craft → cream
+  const themeC = TC_THEMES.sky;     // Pixel native → sky
+
+  // Set fonts via CSS vars on <html> per direction by wrapping in a div.
+  // Each direction sets its own --tc-display.
+  const fontA = TC_FONTS.rounded;
+  const fontB = TC_FONTS.storybook;
+  const fontC = TC_FONTS.pixel;
+
+  const wrap = (children, font) => (
+    <div style={{ '--tc-display': font.display, '--tc-body': font.body, fontFamily: font.body }}>
+      {children}
+    </div>
+  );
+
+  const intro = (
+    <div style={{ width: 1180, padding: '40px 32px', display: 'flex', flexDirection: 'column', gap: 14, fontFamily: 'system-ui' }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: '#8a7a6a', letterSpacing: 1 }}>DESIGN EXPLORATION · Tappy Colour</div>
+      <div style={{ fontSize: 32, fontWeight: 800, lineHeight: 1.1, fontFamily: '"Fredoka", system-ui' }}>Three directions for a beautifully kid-friendly Tappy Colour</div>
+      <div style={{ fontSize: 16, color: '#6a5a4a', maxWidth: 820, lineHeight: 1.5 }}>
+        Tappy Colour is a colour-by-numbers PWA for 6–10 year olds. The MVP works but the chrome is generic. Below are three full design directions, each spanning every key screen — Home, Difficulty picker, Puzzle, Completion, Settings (with parental gate) and a first-run mascot picker.
+        <br/><br/>
+        Every direction is built around the same playful tone (“Wahoo!”), a child-selectable mascot that recurs throughout the app, and a candy-leaning palette personality. The directions differ in <i>shape language</i>: how the chrome wraps the kid’s artwork.
+      </div>
+      <div style={{ display: 'flex', gap: 24, marginTop: 6 }}>
+        <DirectionLegend color="#ff5fa2" name="A · Squishy" desc="Chunky rounded shapes, 3D-button feel, candy palette. Default friendly app vibe."/>
+        <DirectionLegend color="#e8704d" name="B · Paper Craft" desc="Sticker-and-tape scrapbook. Warm cream paper, hand-placed tilts."/>
+        <DirectionLegend color="#3da9ff" name="C · Pixel Native" desc="Embraces the colour-by-numbers grid. Chunky pixel borders, retro fonts."/>
+      </div>
+    </div>
+  );
+
+  return (
+    <DesignCanvas>
+      <DCSection id="intro" title="Tappy Colour — exploration" subtitle="Three directions × six screens">
+        <DCArtboard id="intro" label="Read me" width={1180} height={300}>{intro}</DCArtboard>
+      </DCSection>
+
+      <DCSection id="dir-a" title="A · Squishy (Candy)" subtitle="Default candidate — chunky 3D buttons, hot pink + lilac, Fredoka">
+        <DCArtboard id="a-home" label="01 Home" width={1180} height={820}>{wrap(<SquishyHome theme={themeA} mascot={mascot}/>, fontA)}</DCArtboard>
+        <DCArtboard id="a-diff" label="02 Difficulty" width={1180} height={820}>{wrap(<SquishyDifficulty theme={themeA} mascot={mascot}/>, fontA)}</DCArtboard>
+        <DCArtboard id="a-puzzle" label="03 Puzzle" width={1180} height={820}>{wrap(<SquishyPuzzle theme={themeA} mascot={mascot}/>, fontA)}</DCArtboard>
+        <DCArtboard id="a-done" label="04 Completion" width={1180} height={820}>{wrap(<SquishyCompletion theme={themeA} mascot={mascot}/>, fontA)}</DCArtboard>
+        <DCArtboard id="a-settings" label="05 Settings (parental gate)" width={1180} height={820}>{wrap(<SquishySettings theme={themeA} mascot={mascot} gated/>, fontA)}</DCArtboard>
+        <DCArtboard id="a-onb" label="06 Onboarding (mascot picker)" width={1180} height={820}>{wrap(<SquishyOnboarding theme={themeA} mascot={mascot}/>, fontA)}</DCArtboard>
+      </DCSection>
+
+      <DCSection id="dir-b" title="B · Paper Craft (Cream)" subtitle="Scrapbook sticker app — hand-placed tilts, washi tape, Baloo 2">
+        <DCArtboard id="b-home" label="01 Home" width={1180} height={820}>{wrap(<PaperHome theme={themeB} mascot={mascot}/>, fontB)}</DCArtboard>
+        <DCArtboard id="b-diff" label="02 Difficulty" width={1180} height={820}>{wrap(<PaperDifficulty theme={themeB} mascot={mascot}/>, fontB)}</DCArtboard>
+        <DCArtboard id="b-puzzle" label="03 Puzzle" width={1180} height={820}>{wrap(<PaperPuzzle theme={themeB} mascot={mascot}/>, fontB)}</DCArtboard>
+        <DCArtboard id="b-done" label="04 Completion" width={1180} height={820}>{wrap(<PaperCompletion theme={themeB} mascot={mascot}/>, fontB)}</DCArtboard>
+        <DCArtboard id="b-settings" label="05 Settings" width={1180} height={820}>{wrap(<PaperSettings theme={themeB} mascot={mascot}/>, fontB)}</DCArtboard>
+        <DCArtboard id="b-onb" label="06 Onboarding (mascot picker)" width={1180} height={820}>{wrap(<PaperOnboarding theme={themeB} mascot={mascot}/>, fontB)}</DCArtboard>
+      </DCSection>
+
+      <DCSection id="dir-c" title="C · Pixel Native (Sky)" subtitle="Celebrates the grid — pixel borders, Silkscreen headlines, retro arcade charm">
+        <DCArtboard id="c-home" label="01 Home" width={1180} height={820}>{wrap(<PixelHome theme={themeC} mascot={mascot}/>, fontC)}</DCArtboard>
+        <DCArtboard id="c-diff" label="02 Difficulty" width={1180} height={820}>{wrap(<PixelDifficulty theme={themeC} mascot={mascot}/>, fontC)}</DCArtboard>
+        <DCArtboard id="c-puzzle" label="03 Puzzle" width={1180} height={820}>{wrap(<PixelPuzzle theme={themeC} mascot={mascot}/>, fontC)}</DCArtboard>
+        <DCArtboard id="c-done" label="04 Completion" width={1180} height={820}>{wrap(<PixelCompletion theme={themeC} mascot={mascot}/>, fontC)}</DCArtboard>
+        <DCArtboard id="c-settings" label="05 Settings" width={1180} height={820}>{wrap(<PixelSettings theme={themeC} mascot={mascot}/>, fontC)}</DCArtboard>
+        <DCArtboard id="c-onb" label="06 Onboarding (mascot picker)" width={1180} height={820}>{wrap(<PixelOnboarding theme={themeC} mascot={mascot}/>, fontC)}</DCArtboard>
+      </DCSection>
+
+      <DCSection id="mascots" title="Mascot cast" subtitle="The child picks one on first run. Mix of girls / boys / neutral.">
+        <DCArtboard id="cast" label="The cast" width={1180} height={360}>
+          {wrap(
+            <div style={{
+              width: 1180, height: 360, padding: 32, display: 'grid',
+              gridTemplateColumns: 'repeat(4, 1fr)', gap: 18,
+              background: themeA.bg, fontFamily: fontA.body,
+            }}>
+              {TC_MASCOTS.map(m => (
+                <div key={m.id} style={{
+                  background: '#fff', borderRadius: 22, padding: 16,
+                  boxShadow: `0 5px 0 ${themeA.bgAlt}, 0 8px 18px ${themeA.shadow}`,
+                  display: 'flex', alignItems: 'center', gap: 14,
+                }}>
+                  <Mascot mascot={m} size={64} wave/>
+                  <div>
+                    <div style={{ fontFamily: fontA.display, fontSize: 22, fontWeight: 700, color: themeA.ink }}>{m.name}</div>
+                    <div style={{ fontSize: 12, color: themeA.inkSoft, fontWeight: 700, textTransform: 'capitalize' }}>{m.kind} · {m.tag}</div>
+                  </div>
+                </div>
+              ))}
+            </div>,
+            fontA
+          )}
+        </DCArtboard>
+      </DCSection>
+
+    </DesignCanvas>
+  );
+}
+
+function DirectionLegend({ color, name, desc }) {
+  return (
+    <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', maxWidth: 320 }}>
+      <div style={{ width: 14, height: 14, background: color, borderRadius: 4, flexShrink: 0, marginTop: 4 }}/>
+      <div>
+        <div style={{ fontWeight: 800, fontSize: 14, color: '#2a251f' }}>{name}</div>
+        <div style={{ fontSize: 13, color: '#6a5a4a', lineHeight: 1.4 }}>{desc}</div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+
+</body>
+</html>

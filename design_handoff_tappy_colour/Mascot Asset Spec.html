@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Tappy Colour — Mascot Asset Spec</title>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --ink: #1a1020;
+    --ink-soft: #5a5a72;
+    --bg: #eaf6ff;
+    --surface: #ffffff;
+    --primary: #3b8dd6;
+    --line: #1a102022;
+    --display: "Pixelify Sans", system-ui, sans-serif;
+    --body: "Nunito", system-ui, sans-serif;
+    --mono: "JetBrains Mono", monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: var(--body); background: var(--bg); color: var(--ink); line-height: 1.55; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 56px 32px 80px; }
+
+  h1 { font-family: var(--display); font-size: 64px; letter-spacing: 1px; margin: 0 0 4px; color: var(--primary); text-shadow: 3px 3px 0 var(--ink); }
+  h2 { font-family: var(--display); font-size: 32px; letter-spacing: 0.5px; margin: 56px 0 20px; padding-bottom: 8px; border-bottom: 4px solid var(--ink); }
+  h3 { font-family: var(--display); font-size: 20px; letter-spacing: 0.5px; margin: 32px 0 12px; }
+  .lead { font-size: 18px; color: var(--ink-soft); margin: 0 0 32px; max-width: 720px; }
+  .pill { display: inline-block; font-family: var(--display); font-size: 12px; padding: 4px 10px; border: 3px solid var(--ink); background: #fff; border-radius: 6px; margin-right: 6px; box-shadow: 0 3px 0 0 var(--ink); }
+
+  .roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
+  .card {
+    background: var(--surface);
+    border: 4px solid var(--ink);
+    border-radius: 8px;
+    padding: 18px 14px 14px;
+    box-shadow: 0 6px 0 0 var(--ink), 0 8px 16px rgba(20, 30, 50, 0.08);
+    text-align: center;
+  }
+  .card .frame {
+    background: var(--bg);
+    border-radius: 6px;
+    border: 2px solid var(--line);
+    padding: 12px;
+    margin-bottom: 12px;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .card img { image-rendering: pixelated; image-rendering: crisp-edges; width: 88px; height: 88px; }
+  .card .name { font-family: var(--display); font-size: 18px; letter-spacing: 0.5px; }
+  .card .tag { font-size: 11px; color: var(--ink-soft); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+  .card .id { font-family: var(--mono); font-size: 11px; color: var(--ink-soft); margin-top: 8px; }
+
+  /* Animation demo */
+  .mascot-bob {
+    transform-origin: 50% 90%;
+    animation: mascot-bob 1.4s steps(2) infinite;
+  }
+  @keyframes mascot-bob {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50%      { transform: translateY(-1px) rotate(2deg); }
+  }
+
+  /* Scale comparison */
+  .scales { display: flex; align-items: flex-end; gap: 24px; flex-wrap: wrap; background: #fff; border: 4px solid var(--ink); border-radius: 8px; padding: 24px; box-shadow: 0 6px 0 0 var(--ink); }
+  .scales > div { text-align: center; }
+  .scales img { display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+  .scales .label { font-family: var(--display); font-size: 12px; margin-top: 8px; letter-spacing: 0.5px; }
+  .scales .px { font-family: var(--mono); font-size: 10px; color: var(--ink-soft); }
+
+  /* Token table */
+  table { width: 100%; border-collapse: collapse; background: #fff; border: 4px solid var(--ink); border-radius: 8px; overflow: hidden; box-shadow: 0 6px 0 0 var(--ink); }
+  th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--line); font-family: var(--mono); font-size: 13px; }
+  th { background: var(--ink); color: #fff; font-family: var(--display); letter-spacing: 1px; font-size: 13px; }
+  tr:last-child td { border-bottom: none; }
+  .swatch { display: inline-block; width: 16px; height: 16px; border-radius: 4px; border: 2px solid var(--ink); vertical-align: middle; margin-right: 6px; }
+  td.role { font-family: var(--body); font-weight: 700; }
+
+  /* Code blocks */
+  pre {
+    background: #1a1020; color: #f0e6f3;
+    padding: 16px 20px; border-radius: 8px;
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.6;
+    overflow-x: auto;
+    border: 4px solid var(--ink);
+    box-shadow: 0 6px 0 0 var(--ink);
+  }
+  pre .k { color: #ffb86c; }
+  pre .s { color: #a8e6cf; }
+  pre .c { color: #6a6a8a; font-style: italic; }
+
+  /* File tree */
+  .tree {
+    background: #fff; border: 4px solid var(--ink); border-radius: 8px; padding: 16px 24px;
+    box-shadow: 0 6px 0 0 var(--ink);
+    font-family: var(--mono); font-size: 13px; line-height: 1.7;
+    white-space: pre;
+  }
+
+  /* Two-col tabs for web/iOS */
+  .platforms { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 880px) { .platforms { grid-template-columns: 1fr; } }
+  .plat { background: #fff; border: 4px solid var(--ink); border-radius: 8px; padding: 18px 22px; box-shadow: 0 6px 0 0 var(--ink); }
+  .plat h3 { margin-top: 0; }
+
+  /* Sizing chart */
+  .sizes { display: flex; align-items: flex-end; gap: 12px; padding: 32px 24px; background: #fff; border: 4px solid var(--ink); border-radius: 8px; box-shadow: 0 6px 0 0 var(--ink); overflow-x: auto; }
+  .sizes > div { flex-shrink: 0; text-align: center; }
+  .sizes img { image-rendering: pixelated; image-rendering: crisp-edges; display: block; }
+  .sizes .label { font-family: var(--display); font-size: 11px; margin-top: 8px; letter-spacing: 0.5px; }
+  .sizes .case { font-size: 11px; color: var(--ink-soft); font-weight: 700; }
+
+  .checklist { background: #fff; border: 4px solid var(--ink); border-radius: 8px; padding: 18px 28px; box-shadow: 0 6px 0 0 var(--ink); }
+  .checklist li { margin: 6px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <span class="pill">v1.0.0</span>
+  <span class="pill">11 mascots</span>
+  <span class="pill">32 × 32 native</span>
+  <span class="pill">iPad-first</span>
+
+  <h1 style="margin-top: 16px;">Mascot Assets</h1>
+  <p class="lead">Pixel-art mascots for Tappy Colour. Native 32×32, designed for an iPad-first web app and iOS app. Every mascot bobs gently when active.</p>
+
+  <h2>The roster</h2>
+  <p style="color: var(--ink-soft); margin-top: -8px;">Hover or tap any card — the mascot bobs the way it will in the live app.</p>
+  <div class="roster" id="roster"></div>
+
+  <h2>Sizing on iPad</h2>
+  <p>Logical-point sizes that map cleanly to the 32px native sprite. Off-grid sizes (like 50pt) blur even with nearest-neighbour. The grid below shows Pip at every recommended size.</p>
+  <div class="sizes">
+    <div><img src="assets/mascots/png/pip-1x.png" width="32" height="32"/><div class="label">32pt</div><div class="case">chip</div></div>
+    <div><img src="assets/mascots/png/pip-2x.png" width="64" height="64"/><div class="label">64pt</div><div class="case">list / row</div></div>
+    <div><img src="assets/mascots/png/pip-3x.png" width="96" height="96"/><div class="label">96pt</div><div class="case">avatar</div></div>
+    <div><img src="assets/mascots/png/pip-4x.png" width="128" height="128"/><div class="label">128pt</div><div class="case">card</div></div>
+    <div><img src="assets/mascots/png/pip-8x.png" width="192" height="192"/><div class="label">192pt</div><div class="case">screen hero</div></div>
+    <div><img src="assets/mascots/png/pip-8x.png" width="256" height="256"/><div class="label">256pt</div><div class="case">celebration</div></div>
+  </div>
+
+  <h2>Animation: the "bob"</h2>
+  <p>Active mascots bob — selected on onboarding, on the difficulty/completion screens, when celebrating. Idle mascots stay still.</p>
+  <div class="scales">
+    <div>
+      <img src="assets/mascots/svg/sunny.svg" width="128" height="128" class="mascot-bob"/>
+      <div class="label">animated</div>
+      <div class="px">1.4s · steps(2) · infinite</div>
+    </div>
+    <div>
+      <img src="assets/mascots/svg/sunny.svg" width="128" height="128"/>
+      <div class="label">idle</div>
+      <div class="px">no transform</div>
+    </div>
+  </div>
+  <p style="margin-top: 16px;"><strong>Why <code>steps(2)</code>?</strong> It keeps the animation feeling like 2-frame pixel-art animation — punchy, not floaty. A linear ease betrays the pixel aesthetic.</p>
+
+  <h2>Palette roles</h2>
+  <p>Each mascot uses a small palette of named roles. Per-kind overrides exist for unicorn (white body + golden horn) and poo (brown). See <code>mascots.json</code> for fully-resolved palettes.</p>
+  <table>
+    <thead><tr><th>Key</th><th>Role</th><th style="width: 30%;">Example (Pip)</th></tr></thead>
+    <tbody>
+      <tr><td>a</td><td class="role">Body main fill</td><td><span class="swatch" style="background:#ffd25f"></span>#ffd25f</td></tr>
+      <tr><td>h</td><td class="role">Body soft mid-shade</td><td><span class="swatch" style="background:rgb(210,173,79)"></span>rgb(210,173,79)</td></tr>
+      <tr><td>b</td><td class="role">Body outline / dark shade</td><td><span class="swatch" style="background:rgb(153,126,57)"></span>rgb(153,126,57)</td></tr>
+      <tr><td>l</td><td class="role">Body light highlight</td><td><span class="swatch" style="background:rgb(255,222,143)"></span>rgb(255,222,143)</td></tr>
+      <tr><td>c</td><td class="role">White / belly / eye-white</td><td><span class="swatch" style="background:#fff"></span>#ffffff</td></tr>
+      <tr><td>d</td><td class="role">Primary accent (beak, nose, spike)</td><td><span class="swatch" style="background:#ff8a3d"></span>#ff8a3d</td></tr>
+      <tr><td>e</td><td class="role">Cheek</td><td><span class="swatch" style="background:#ff9bbd"></span>#ff9bbd</td></tr>
+      <tr><td>k</td><td class="role">Eye / mouth black</td><td><span class="swatch" style="background:#1a1020"></span>#1a1020</td></tr>
+      <tr><td>s</td><td class="role">Eye highlight / sparkle</td><td><span class="swatch" style="background:#fff"></span>#ffffff</td></tr>
+      <tr><td>g</td><td class="role">Whisker / claw</td><td><span class="swatch" style="background:#1a1020"></span>#1a1020</td></tr>
+    </tbody>
+  </table>
+
+  <h2>File structure</h2>
+  <div class="tree">assets/mascots/
+├─ HANDOFF.md                this is the longform handoff doc
+├─ mascots.json              raw sprite data + palettes + animation spec
+├─ sprite-sheet-4x.png       all 11 mascots in one image
+├─ svg/
+│  ├─ pip.svg                static, infinite-scale (preferred for web)
+│  ├─ pip-animated.svg       embeds the bob animation as &lt;style&gt;
+│  └─ ... × 11 mascots
+└─ png/
+   ├─ pip-1x.png             32 × 32 native
+   ├─ pip-2x.png             64 × 64
+   ├─ pip-3x.png             96 × 96 (iOS @3x for ~32pt display)
+   ├─ pip-4x.png             128 × 128
+   ├─ pip-8x.png             256 × 256 (hero / completion)
+   └─ ... × 11 mascots
+</div>
+
+  <h2>Implementation</h2>
+  <div class="platforms">
+
+    <div class="plat">
+      <h3>Web</h3>
+      <p>Use the SVGs — small (1–4 KB each), infinite scale, no <code>image-rendering</code> needed.</p>
+      <pre><span class="c">// global.css</span>
+.<span class="k">mascot-bob</span> {
+  transform-origin: <span class="s">50% 90%</span>;
+  animation: <span class="s">mascot-bob 1.4s steps(2) infinite</span>;
+}
+@keyframes mascot-bob {
+  <span class="s">0%</span>,<span class="s">100%</span> { transform: translateY(0) rotate(-2deg); }
+  <span class="s">50%</span>      { transform: translateY(-1px) rotate(2deg); }
+}</pre>
+      <pre><span class="c">// React</span>
+&lt;img
+  src=<span class="s">{`/mascots/svg/${id}.svg`}</span>
+  width={<span class="s">size</span>} height={<span class="s">size</span>}
+  className={<span class="s">active ? 'mascot-bob' : ''</span>}
+  alt={<span class="s">name</span>}
+/&gt;</pre>
+    </div>
+
+    <div class="plat">
+      <h3>iOS — SwiftUI</h3>
+      <p>Drag the PNGs into <code>Assets.xcassets</code>. Use <code>.interpolation(.none)</code> — without it iOS smooths the upscale and the pixels go fuzzy.</p>
+      <pre><span class="k">struct</span> MascotView: View {
+    <span class="k">let</span> id: String
+    <span class="k">let</span> size: CGFloat
+    <span class="k">@State</span> <span class="k">private var</span> bobUp = <span class="s">false</span>
+
+    <span class="k">var</span> body: <span class="k">some</span> View {
+        Image(id)
+            .interpolation(.none)
+            .resizable()
+            .frame(width: size, height: size)
+            .rotationEffect(
+                .degrees(bobUp ? <span class="s">2</span> : <span class="s">-2</span>),
+                anchor: .bottom)
+            .offset(y: bobUp ? <span class="s">-1</span> : <span class="s">0</span>)
+            .animation(
+                .linear(duration: <span class="s">0.7</span>)
+                    .repeatForever(autoreverses: <span class="s">true</span>),
+                value: bobUp)
+            .onAppear { bobUp = <span class="s">true</span> }
+    }
+}</pre>
+    </div>
+  </div>
+
+  <h2>Platform checklist</h2>
+  <div class="platforms">
+    <div class="checklist">
+      <h3>Web</h3>
+      <ul>
+        <li>☐ Copy <code>svg/</code> + <code>png/</code> into <code>public/mascots/</code></li>
+        <li>☐ Add <code>.mascot-bob</code> keyframes to global CSS</li>
+        <li>☐ Render SVG via <code>&lt;img&gt;</code> (no flag) or PNG with <code>image-rendering: pixelated</code></li>
+        <li>☐ Don't wrap in elements with CSS <code>filter</code> or non-integer <code>transform: scale()</code> — that introduces subpixel rendering</li>
+        <li>☐ Mascots animate only when <em>active</em>; idle list states stay still</li>
+      </ul>
+    </div>
+    <div class="checklist">
+      <h3>iOS</h3>
+      <ul>
+        <li>☐ Drop PNGs into <code>Mascots.xcassets</code>, one image-set per mascot</li>
+        <li>☐ Verify <code>.interpolation(.none)</code> (SwiftUI) or <code>.nearest</code> magnification filter (UIKit)</li>
+        <li>☐ Sizes: integer multiples of 32pt (32, 64, 96, 128, 192, 256)</li>
+        <li>☐ Don't substitute spring animations — keep linear + repeat-autoreverse</li>
+        <li>☐ Bob anchor = <code>.bottom</code>, not <code>.center</code></li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Sprite sheet</h2>
+  <p>For quick reference / Figma import. Native pixels at 4× scale.</p>
+  <img src="assets/mascots/sprite-sheet-4x.png" alt="All 11 mascots" style="width: 100%; max-width: 900px; image-rendering: pixelated; border: 4px solid var(--ink); border-radius: 8px; box-shadow: 0 6px 0 0 var(--ink);"/>
+
+</div>
+
+<script>
+const MASCOTS = [
+  { id: 'pip',     name: 'Pip',     species: 'Chick' },
+  { id: 'rosie',   name: 'Rosie',   species: 'Bunny' },
+  { id: 'bo',      name: 'Bo',      species: 'Bear' },
+  { id: 'mochi',   name: 'Mochi',   species: 'Cat' },
+  { id: 'finn',    name: 'Finn',    species: 'Frog' },
+  { id: 'luna',    name: 'Luna',    species: 'Fox' },
+  { id: 'bibi',    name: 'Bibi',    species: 'Octopus' },
+  { id: 'sprout',  name: 'Sprout',  species: 'Dino' },
+  { id: 'sparkle', name: 'Sparkle', species: 'Unicorn' },
+  { id: 'plop',    name: 'Plop',    species: 'Poo' },
+  { id: 'sunny',   name: 'Sunny',   species: 'Smiley' },
+];
+const roster = document.getElementById('roster');
+roster.innerHTML = MASCOTS.map(m => `
+  <div class="card">
+    <div class="frame">
+      <img src="assets/mascots/svg/${m.id}.svg" width="88" height="88" class="mascot-bob" alt="${m.name}"/>
+    </div>
+    <div class="name">${m.name}</div>
+    <div class="tag">${m.species}</div>
+    <div class="id">${m.id}</div>
+  </div>
+`).join('');
+</script>
+
+</body>
+</html>

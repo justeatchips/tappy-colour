@@ -1,0 +1,129 @@
+{
+  "version": "2.0.0",
+  "imageSize": {
+    "width": 512,
+    "height": 512
+  },
+  "mascots": [
+    {
+      "id": "flutters",
+      "name": "Flutters",
+      "kind": "butterfly",
+      "filename": "flutters.png",
+      "vibe": "accidental leader",
+      "tag": "accidental leader",
+      "personality": "Sweet, sparkly, and tries to keep everyone under control... but absolutely cannot.",
+      "palette": ["#FFB3DE", "#CBA0FF", "#FFF176", "#FF8A65", "#6EC6FF"],
+      "tokens": {
+        "body": "#FFB3DE",
+        "accent": "#CBA0FF",
+        "cheek": "#FF8A65"
+      }
+    },
+    {
+      "id": "plop",
+      "name": "Plop",
+      "kind": "poop",
+      "filename": "plop.png",
+      "vibe": "chaotic confidence",
+      "tag": "chaotic confidence",
+      "personality": "Loud. Proud. Slightly too confident for what it is. Thinks it's the leader.",
+      "palette": ["#8D6E63", "#6D4C41", "#A1887F", "#5D4037", "#FF8A80"],
+      "tokens": {
+        "body": "#8D6E63",
+        "accent": "#6D4C41",
+        "cheek": "#FF8A80"
+      }
+    },
+    {
+      "id": "sparklepants",
+      "name": "Sparklepants",
+      "kind": "unicorn",
+      "filename": "sparklepants.png",
+      "vibe": "dramatic energy",
+      "tag": "dramatic energy",
+      "personality": "Magical, dramatic, and cries glitter when things don't go its way.",
+      "palette": ["#FFFFFF", "#FF9ED1", "#FFD54F", "#7C4DFF", "#80D8FF"],
+      "tokens": {
+        "body": "#FFFFFF",
+        "accent": "#FF9ED1",
+        "cheek": "#7C4DFF"
+      }
+    },
+    {
+      "id": "sir-chomps-a-lot",
+      "name": "Sir Chomps-a-Lot",
+      "kind": "capybara",
+      "filename": "sir-chomps-a-lot.png",
+      "vibe": "zen gremlin",
+      "tag": "zen gremlin",
+      "personality": "Unbothered. Unstoppable. Always chewing something that isn't theirs.",
+      "palette": ["#A1887F", "#8D6E63", "#6D4C41", "#D7CCC8", "#4DB6AC"],
+      "tokens": {
+        "body": "#A1887F",
+        "accent": "#8D6E63",
+        "cheek": "#4DB6AC"
+      }
+    },
+    {
+      "id": "squeak-nugget",
+      "name": "Squeak Nugget",
+      "kind": "chick",
+      "filename": "squeak-nugget.png",
+      "vibe": "tiny chaos",
+      "tag": "tiny chaos",
+      "personality": "Tiny. Screamy. Runs everywhere like it has VERY IMPORTANT BUSINESS.",
+      "palette": ["#FFF176", "#FFD54F", "#FFB300", "#FFA726", "#FFFFFF"],
+      "tokens": {
+        "body": "#FFF176",
+        "accent": "#FFD54F",
+        "cheek": "#FFA726"
+      }
+    },
+    {
+      "id": "oinkers-mcsnort",
+      "name": "Oinkers McSnort",
+      "kind": "piglet",
+      "filename": "oinkers-mcsnort.png",
+      "vibe": "goofy energy",
+      "tag": "goofy energy",
+      "personality": "Snorts when it laughs. Laughs at everything. Especially its own jokes.",
+      "palette": ["#F8BBD0", "#F48FB1", "#F06292", "#EC407A", "#FFFFFF"],
+      "tokens": {
+        "body": "#F8BBD0",
+        "accent": "#F48FB1",
+        "cheek": "#EC407A"
+      }
+    },
+    {
+      "id": "chaosaurus",
+      "name": "Chaosaurus",
+      "kind": "baby dinosaur",
+      "filename": "chaosaurus.png",
+      "vibe": "destructive optimism",
+      "tag": "destructive optimism",
+      "personality": "Wants to be scary. Is not scary. Knocks things over anyway.",
+      "palette": ["#66BB6A", "#43A047", "#2E7D32", "#FF7043", "#C5E1A5"],
+      "tokens": {
+        "body": "#66BB6A",
+        "accent": "#43A047",
+        "cheek": "#FF7043"
+      }
+    },
+    {
+      "id": "captain-snooze",
+      "name": "Captain Snooze",
+      "kind": "baby sloth",
+      "filename": "captain-snooze.png",
+      "vibe": "slow-motion legend",
+      "tag": "slow-motion legend",
+      "personality": "Moves at the speed of... eventually. Somehow still late.",
+      "palette": ["#BCAAA4", "#8D6E63", "#6D4C41", "#EFEBE9", "#A5D6A7"],
+      "tokens": {
+        "body": "#BCAAA4",
+        "accent": "#8D6E63",
+        "cheek": "#A5D6A7"
+      }
+    }
+  ]
+}
