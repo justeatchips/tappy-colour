@@ -1,0 +1,1 @@
+class l{}function o(e){e.style.overflowX="hidden",e.style.overflowY="auto",e.style.touchAction="pan-y",e.style.setProperty("-webkit-overflow-scrolling","touch")}function t(e){e.style.overflowX="hidden",e.style.overflowY="hidden",e.style.touchAction="none",e.style.removeProperty("-webkit-overflow-scrolling")}export{l as V,t as a,o as c};

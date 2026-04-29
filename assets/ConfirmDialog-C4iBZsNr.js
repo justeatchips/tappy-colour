@@ -1,0 +1,49 @@
+function l(c){return new Promise(a=>{const t=document.createElement("div");t.style.cssText=`
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 24px;
+      box-sizing: border-box;
+    `;const i=document.createElement("div");i.style.cssText=`
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 320px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    `;const s=document.createElement("p");s.textContent=c,s.style.cssText=`
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: #1f2937;
+      text-align: center;
+    `,i.appendChild(s);const r=document.createElement("div");r.style.cssText="display: flex; gap: 12px;";const n=document.createElement("button");n.textContent="Keep it",n.style.cssText=`
+      flex: 1;
+      padding: 14px;
+      min-height: 52px;
+      font-size: 16px;
+      font-weight: 600;
+      background: #f3f4f6;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      color: #374151;
+    `;const o=document.createElement("button");o.textContent="Delete",o.style.cssText=`
+      flex: 1;
+      padding: 14px;
+      min-height: 52px;
+      font-size: 16px;
+      font-weight: 600;
+      background: #dc2626;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      color: white;
+    `;const d=e=>{t.remove(),a(e)};n.addEventListener("click",()=>d(!1)),n.addEventListener("touchend",e=>{e.preventDefault(),d(!1)}),o.addEventListener("click",()=>d(!0)),o.addEventListener("touchend",e=>{e.preventDefault(),d(!0)}),t.addEventListener("click",e=>{e.target===t&&d(!1)}),r.appendChild(n),r.appendChild(o),i.appendChild(r),t.appendChild(i),document.body.appendChild(t)})}export{l as s};
