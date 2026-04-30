@@ -1,0 +1,1 @@
+let t=null;const u=[],l={set(e,n=[]){t=e,u.push(...n)},enqueue(e){u.push(...e)},take(){const e=t;return t=null,e},takeNextQueued(){return u.shift()??null},has(){return t!==null},queuedCount(){return u.length},clearQueue(){u.length=0}};export{l as ImportStaging};
