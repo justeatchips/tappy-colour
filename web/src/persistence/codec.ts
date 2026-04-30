@@ -5,6 +5,7 @@ import { PixelGrid } from '../engine/PixelGrid'
 import { makeConversionSettings } from '../engine/ConversionSettings'
 import type { PaletteColour } from '../engine/types'
 import type { PaintTool } from '../model/PaintTool'
+import { normaliseCellShape } from '../engine/GridShape'
 
 function isPaintTool(value: unknown): value is PaintTool {
   return value === 'tap' || value === 'bucket' || value === 'fillAll'
@@ -28,6 +29,7 @@ export function encodeArtwork(artwork: Artwork): ArtworkRecord {
     sliderValue: artwork.conversionSettings.sliderValue,
     autoFillEnabled: artwork.conversionSettings.autoFillEnabled,
     imageFit: artwork.conversionSettings.imageFit ?? 'cover',
+    cellShape: normaliseCellShape(artwork.conversionSettings.cellShape),
     gridColumns: artwork.grid.columns,
     gridRows: artwork.grid.rows,
     paletteJson: JSON.stringify(artwork.palette.colours),
@@ -55,6 +57,7 @@ export function decodeArtwork(record: ArtworkRecord): Artwork {
   const conversionSettings = makeConversionSettings(record.sliderValue, {
     autoFillEnabled: record.autoFillEnabled ?? true,
     imageFit: record.imageFit === 'contain' ? 'contain' : 'cover',
+    cellShape: normaliseCellShape(record.cellShape),
   })
 
   const source: ArtworkSource = record.sourceJson

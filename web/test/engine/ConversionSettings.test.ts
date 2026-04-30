@@ -40,6 +40,11 @@ describe('makeConversionSettings', () => {
     expect(makeConversionSettings(0.5, { autoFillEnabled: true }).autoFillEnabled).toBe(true)
   })
 
+  it('keeps the requested cell shape', () => {
+    expect(makeConversionSettings(0.5).cellShape).toBe('square')
+    expect(makeConversionSettings(0.5, { cellShape: 'hexCircle' }).cellShape).toBe('hexCircle')
+  })
+
   it('gridSize stays within 16–80', () => {
     for (let i = 0; i <= 100; i++) {
       const s = makeConversionSettings(i / 100)

@@ -159,6 +159,7 @@ button[hidden],
 
 /* Button base */
 .px-button {
+  position: relative;
   background: var(--tc-surface);
   border: var(--tc-border-width) solid var(--tc-ink-black);
   border-radius: var(--tc-radius);
@@ -171,6 +172,7 @@ button[hidden],
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   font-weight: 700;
   color: var(--tc-ink);
   transition: transform 80ms steps(2), box-shadow 80ms steps(2), background 80ms steps(2), border-color 80ms steps(2);
@@ -264,6 +266,44 @@ button[hidden],
   padding: 0;
 }
 
+.px-button[data-touch-label]::after,
+.tc-tool-button[data-touch-label]::after {
+  content: attr(data-touch-label);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  z-index: 20;
+  transform: translateX(-50%);
+  max-width: 180px;
+  padding: 6px 8px;
+  border: 3px solid var(--tc-ink-black);
+  border-radius: var(--tc-radius-sm);
+  background: var(--tc-ink);
+  color: white;
+  box-shadow: var(--tc-shadow-sm);
+  font: 800 11px var(--tc-font-display);
+  letter-spacing: 0.5px;
+  line-height: 1;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 80ms steps(2);
+}
+
+.px-button[data-touch-label]:focus-visible::after,
+.px-button[data-touch-label]:active::after,
+.tc-tool-button[data-touch-label]:focus-visible::after,
+.tc-tool-button[data-touch-label]:active::after {
+  opacity: 1;
+}
+
+@media (hover: hover) {
+  .px-button[data-touch-label]:hover::after,
+  .tc-tool-button[data-touch-label]:hover::after {
+    opacity: 1;
+  }
+}
+
 .tc-topbar {
   display: flex;
   align-items: center;
@@ -297,6 +337,14 @@ button[hidden],
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.home-action-btn__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: currentColor;
+  line-height: 1;
 }
 
 .tc-input {
@@ -836,20 +884,37 @@ button[hidden],
 }
 
 .tc-tool-button {
-  width: var(--tc-touch-target);
+  position: relative;
+  width: auto;
   height: var(--tc-touch-target);
-  min-width: var(--tc-touch-target);
+  min-width: 62px;
   min-height: var(--tc-touch-target);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
+  flex-direction: column;
+  gap: 1px;
+  padding: 3px 8px;
   background: var(--tc-surface);
   color: var(--tc-ink);
   border: var(--tc-border-width-sm) solid var(--tc-ink-black);
   border-radius: var(--tc-radius);
   box-shadow: var(--tc-shadow-sm);
   transition: transform 80ms steps(2), box-shadow 80ms steps(2), background 80ms steps(2), border-color 80ms steps(2), opacity 80ms steps(2);
+}
+
+.tc-tool-button__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.tc-tool-button__text {
+  font-family: var(--tc-font-display);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
 }
 
 .tc-tool-button[data-active="true"] {
@@ -1028,6 +1093,64 @@ button[hidden],
   z-index: 2;
 }
 
+.tc-search-suggestions {
+  display: flex;
+  gap: 8px;
+  padding: 8px 12px 0;
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+
+.tc-search-suggestion {
+  min-height: 36px;
+  padding: 8px 12px;
+  border: var(--tc-border-width-sm) solid var(--tc-ink-black);
+  border-radius: var(--tc-radius);
+  background: var(--tc-surface);
+  box-shadow: var(--tc-shadow-sm);
+  color: var(--tc-ink);
+  font: 800 13px var(--tc-font-display);
+  white-space: nowrap;
+}
+
+.tc-topic-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+  gap: 14px;
+  max-width: 820px;
+  margin: 0 auto;
+}
+
+.tc-topic-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-height: 156px;
+  padding: 12px;
+  border: var(--tc-border-width) solid var(--tc-ink-black);
+  border-radius: var(--tc-radius);
+  background: var(--tc-surface);
+  box-shadow: var(--tc-shadow-sm);
+  color: var(--tc-ink);
+  font: 800 14px var(--tc-font-display);
+  transition: transform 80ms steps(2), box-shadow 80ms steps(2), border-color 80ms steps(2);
+}
+
+.tc-topic-card:hover,
+.tc-topic-card:focus-visible {
+  border-color: var(--tc-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 0 var(--tc-ink-black);
+}
+
+.tc-topic-card img {
+  width: min(96px, 100%);
+  aspect-ratio: 1;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
 .tc-search-results {
   flex: 1;
   min-height: 0;
@@ -1070,6 +1193,28 @@ button[hidden],
   display: block;
   object-fit: cover;
   background: var(--tc-bg-alt);
+}
+
+.tc-search-card--topic {
+  position: relative;
+}
+
+.tc-search-card--topic img {
+  object-fit: contain;
+  padding: 10px;
+  image-rendering: pixelated;
+}
+
+.tc-search-card__badge {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  padding: 4px 6px;
+  border: 2px solid var(--tc-ink-black);
+  border-radius: var(--tc-radius-sm);
+  background: var(--tc-warning);
+  color: var(--tc-ink);
+  font: 800 10px var(--tc-font-display);
 }
 
 .tc-search-card__fallback {
@@ -1580,18 +1725,25 @@ button[hidden],
   text-align: center;
 }
 
-.difficulty-fit-controls {
+.difficulty-fit-controls,
+.difficulty-shape-controls {
   display: flex;
   gap: 8px;
   margin-bottom: 12px;
 }
 
-.difficulty-fit-button {
+.difficulty-shape-controls {
+  margin-top: -4px;
+}
+
+.difficulty-fit-button,
+.difficulty-shape-button {
   flex: 1;
   min-width: 0;
 }
 
 .difficulty-fit-button[aria-pressed="true"],
+.difficulty-shape-button[aria-pressed="true"],
 .difficulty-preview-card[aria-pressed="true"] {
   background: var(--tc-primary-soft);
   box-shadow: 0 2px 0 0 var(--tc-ink-black);

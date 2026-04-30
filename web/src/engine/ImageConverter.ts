@@ -4,6 +4,7 @@ import { quantise } from './KMeansQuantiser'
 import { PixelGrid } from './PixelGrid'
 import { findAutoFillCells } from './autoFill'
 import { drawImageFit } from '../util/thumbnail'
+import { inactiveCellsForShape } from './GridShape'
 
 const useOffscreenCanvas = typeof OffscreenCanvas !== 'undefined'
 
@@ -16,9 +17,10 @@ export interface ConversionOutput {
 
 export function createGridFromConversionOutput(
   output: ConversionOutput,
-  settings: Pick<ConversionSettings, 'autoFillEnabled'>
+  settings: Pick<ConversionSettings, 'autoFillEnabled' | 'cellShape'>
 ): PixelGrid {
   const grid = PixelGrid.create(output.columns, output.rows, output.paletteIndices, output.centroids.length)
+  grid.paintCells(inactiveCellsForShape(output.columns, output.rows, settings.cellShape))
   if (settings.autoFillEnabled) {
     grid.paintCells(findAutoFillCells(output))
   }

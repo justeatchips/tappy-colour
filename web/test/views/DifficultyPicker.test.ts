@@ -87,6 +87,26 @@ describe('DifficultyPicker defaults', () => {
     expect(contain?.getAttribute('aria-pressed')).toBe('true')
   })
 
+  it('offers square and hex circle colouring modes', () => {
+    const root = document.createElement('div')
+    document.body.appendChild(root)
+    const screen = new DifficultyPicker(makeRouter(), makeStore(), 'starter', null)
+
+    screen.mount(root)
+
+    const square = root.querySelector<HTMLButtonElement>('[data-cell-shape="square"]')
+    const hexCircle = root.querySelector<HTMLButtonElement>('[data-cell-shape="hexCircle"]')
+
+    expect(square).toBeInstanceOf(HTMLButtonElement)
+    expect(hexCircle).toBeInstanceOf(HTMLButtonElement)
+    expect(square?.getAttribute('aria-pressed')).toBe('true')
+
+    hexCircle!.click()
+
+    expect(square?.getAttribute('aria-pressed')).toBe('false')
+    expect(hexCircle?.getAttribute('aria-pressed')).toBe('true')
+  })
+
   it('uses responsive layout hooks for narrow difficulty screens', () => {
     const root = document.createElement('div')
     document.body.appendChild(root)

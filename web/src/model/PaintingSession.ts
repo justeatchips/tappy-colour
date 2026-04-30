@@ -7,6 +7,7 @@ import { floodFillRegion, cellsForNumber } from '../engine/floodFill'
 import type { ArtworkStore } from './ArtworkStore'
 import type { Artwork } from './Artwork'
 import type { PaintTool } from './PaintTool'
+import { DEFAULT_CELL_SHAPE, isCellActiveForShape, normaliseCellShape, type CellShape } from '../engine/GridShape'
 export type { PaintTool } from './PaintTool'
 
 export type PaintEventType =
@@ -28,6 +29,7 @@ export class PaintingSession extends EventEmitter<{ change: PaintEventType }> {
   isComplete = false
   numbersVisible = true
   currentTool: PaintTool = 'tap'
+  cellShape: CellShape = DEFAULT_CELL_SHAPE
   lastCompletedPaletteIndex: number | null = null
   lastRejectedCell: CellCoord | null = null
 
@@ -47,6 +49,7 @@ export class PaintingSession extends EventEmitter<{ change: PaintEventType }> {
     this.grid = artwork.grid
     this.palette = artwork.palette
     this.isComplete = artwork.isComplete
+    this.cellShape = normaliseCellShape(artwork.conversionSettings.cellShape)
 
     // Compute totalCellsPerColour based on palette size
     this.totalCellsPerColour = new Array(artwork.palette.colours.length).fill(0)
@@ -54,6 +57,7 @@ export class PaintingSession extends EventEmitter<{ change: PaintEventType }> {
     // Count total cells for each palette index
     for (let col = 0; col < artwork.grid.columns; col++) {
       for (let row = 0; row < artwork.grid.rows; row++) {
+        if (!isCellActiveForShape(col, row, artwork.grid.columns, artwork.grid.rows, this.cellShape)) continue
         const cell = artwork.grid.cell(col, row)
         if (cell.paletteIndex < this.totalCellsPerColour.length) {
           this.totalCellsPerColour[cell.paletteIndex]++

@@ -11,6 +11,28 @@ import { pickImagesFromLibrary, captureImageFromCamera, decodeAndDownscale } fro
 import { UserSettings } from '../model/UserSettings'
 import { mascotImageUrl, getMascotById, loadMascots, resolveMascotId } from '../model/Mascots'
 import { getSearchAccess } from '../util/searchAccess'
+import { createPxButton } from '../ui/pixel'
+
+const CAMERA_ICON = `<svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M9 8l1.8-2.4h6.4L19 8h4a2 2 0 012 2v11a2 2 0 01-2 2H5a2 2 0 01-2-2V10a2 2 0 012-2h4z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+  <circle cx="14" cy="15.5" r="4.2" stroke="currentColor" stroke-width="2.2"/>
+</svg>`
+
+const PHOTOS_ICON = `<svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="4" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2.2"/>
+  <path d="M8 19l4.2-5 3 3.4 2-2.2L22 21" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="17.5" cy="10.5" r="1.8" fill="currentColor"/>
+</svg>`
+
+const HOME_SEARCH_ICON = `<svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="12" cy="12" r="6.5" stroke="currentColor" stroke-width="2.2"/>
+  <path d="M17 17l6 6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+</svg>`
+
+const SETTINGS_ICON = `<svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M11 7.2a3.8 3.8 0 100 7.6 3.8 3.8 0 000-7.6z" stroke="currentColor" stroke-width="2"/>
+  <path d="M11 2v3M11 17v3M3.2 6.5l2.6 1.5M16.2 14l2.6 1.5M3.2 15.5L5.8 14M16.2 8l2.6-1.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+</svg>`
 
 export class HomeScreen extends View {
   private root: HTMLElement | null = null
@@ -98,11 +120,14 @@ export class HomeScreen extends View {
     headerInfo.appendChild(title)
     header.appendChild(headerInfo)
 
-    const settingsBtn = document.createElement('button')
-    settingsBtn.className = 'px-button px-button--ghost px-button--icon'
-    settingsBtn.textContent = '⚙'
+    const settingsBtn = createPxButton({
+      icon: SETTINGS_ICON,
+      ariaLabel: 'Settings',
+      variant: 'ghost',
+      size: 'icon',
+      onClick: () => this.router.navigate('#/settings'),
+    })
     settingsBtn.id = 'home-settings-btn'
-    settingsBtn.addEventListener('click', () => this.router.navigate('#/settings'))
     header.appendChild(settingsBtn)
 
     container.appendChild(header)
@@ -111,10 +136,10 @@ export class HomeScreen extends View {
     const actionRow = document.createElement('div')
     actionRow.className = 'home-action-row'
 
-    const cameraBtn = this.makeActionBtn('📷', 'CAMERA', 'home-action-btn--primary', () => this.handleCamera())
-    const photosBtn = this.makeActionBtn('🖼', 'PHOTOS', 'home-action-btn--accent', () => this.handleLibrary())
+    const cameraBtn = this.makeActionBtn(CAMERA_ICON, 'CAMERA', 'home-action-btn--primary', () => this.handleCamera())
+    const photosBtn = this.makeActionBtn(PHOTOS_ICON, 'PHOTOS', 'home-action-btn--accent', () => this.handleLibrary())
     const searchAccess = getSearchAccess(settings, navigator.onLine)
-    const searchBtn = this.makeActionBtn('🔍', 'SEARCH', 'home-action-btn--accent', () => this.router.navigate('#/search'))
+    const searchBtn = this.makeActionBtn(HOME_SEARCH_ICON, 'SEARCH', 'home-action-btn--accent', () => this.router.navigate('#/search'))
     if (!searchAccess.allowed) {
       searchBtn.disabled = true
       searchBtn.setAttribute('aria-disabled', 'true')
@@ -216,9 +241,12 @@ export class HomeScreen extends View {
     this.root.appendChild(container)
   }
 
-  private makeActionBtn(emoji: string, label: string, className: string, onClick: () => void): HTMLButtonElement {
+  private makeActionBtn(icon: string, label: string, className: string, onClick: () => void): HTMLButtonElement {
     const btn = document.createElement('button')
     btn.className = `px-button home-action-btn ${className}`
+    btn.type = 'button'
+    btn.title = label
+    btn.dataset.touchLabel = label
     btn.style.cssText = `
       flex: 0 1 300px;
       display: flex;
@@ -231,14 +259,14 @@ export class HomeScreen extends View {
       letter-spacing: 0.5px;
     `
 
-    const emojiSpan = document.createElement('span')
-    emojiSpan.style.cssText = 'font-size: 28px;'
-    emojiSpan.textContent = emoji
+    const iconSpan = document.createElement('span')
+    iconSpan.className = 'home-action-btn__icon'
+    iconSpan.innerHTML = icon
 
     const labelSpan = document.createElement('span')
     labelSpan.textContent = label
 
-    btn.appendChild(emojiSpan)
+    btn.appendChild(iconSpan)
     btn.appendChild(labelSpan)
     btn.addEventListener('click', onClick)
     return btn

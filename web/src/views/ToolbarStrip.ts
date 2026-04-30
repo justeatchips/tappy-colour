@@ -2,34 +2,37 @@ import type { PaintingSession } from '../model/PaintingSession'
 import type { PaintTool } from '../model/PaintTool'
 import { pulseElement } from '../ui/pixel'
 
-const TOOLS: Array<{ tool: PaintTool; label: string; icon: string }> = [
+const TOOLS: Array<{ tool: PaintTool; label: string; shortLabel: string; icon: string }> = [
   {
     tool: 'tap',
     label: 'Tap',
+    shortLabel: 'Tap',
     icon: `<svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M11 2C11 2 8 5.5 8 9a3 3 0 006 0c0-3.5-3-7-3-7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-      <path d="M8 14v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-      <path d="M11 15v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-      <path d="M14 14v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      <rect x="3" y="3" width="7" height="7" rx="1.2" stroke="currentColor" stroke-width="1.8"/>
+      <path d="M12 5.5l5.8 5.8-3.2.7 2.1 4.1-2.4 1.2-2-4-2.2 2.3L12 5.5z" fill="currentColor"/>
     </svg>`,
   },
   {
     tool: 'bucket',
     label: 'Fill Region',
+    shortLabel: 'Fill',
     icon: `<svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M4 16l8-8 4 4-5 6H4v-2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-      <path d="M10 6l2-2 4 4-2 2" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-      <circle cx="18" cy="17" r="2" stroke="currentColor" stroke-width="1.8"/>
+      <path d="M4 12.5l6.2-6.2 5.5 5.5-4.2 4.2H4v-3.5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="M8.5 5L11 2.5l6 6-2.5 2.5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="M17.5 14.5c1.1 1.2 1.7 2.2 1.7 3a1.7 1.7 0 01-3.4 0c0-.8.6-1.8 1.7-3z" fill="currentColor"/>
     </svg>`,
   },
   {
     tool: 'fillAll',
     label: 'Fill All',
+    shortLabel: 'All',
     icon: `<svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="3" y="3" width="7" height="7" rx="1" fill="currentColor" opacity="0.8"/>
-      <rect x="12" y="3" width="7" height="7" rx="1" fill="currentColor" opacity="0.8"/>
-      <rect x="3" y="12" width="7" height="7" rx="1" fill="currentColor" opacity="0.8"/>
-      <rect x="12" y="12" width="7" height="7" rx="1" fill="currentColor" opacity="0.8"/>
+      <rect x="3" y="3" width="6" height="6" rx="1" fill="currentColor"/>
+      <rect x="13" y="3" width="6" height="6" rx="1" fill="currentColor"/>
+      <rect x="3" y="13" width="6" height="6" rx="1" fill="currentColor"/>
+      <rect x="13" y="13" width="6" height="6" rx="1" fill="currentColor"/>
+      <path d="M5 16l1.2 1.2L8.5 15" stroke="white" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M15 6l1.2 1.2L18.5 5" stroke="white" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>`,
   },
 ]
@@ -71,12 +74,14 @@ export class ToolbarStrip {
   }
 
   private buildButtons(): void {
-    for (const { tool, label, icon } of TOOLS) {
+    for (const { tool, label, shortLabel, icon } of TOOLS) {
       const btn = document.createElement('button')
       btn.type = 'button'
       btn.className = 'tc-tool-button'
       btn.setAttribute('aria-label', label)
-      btn.innerHTML = icon
+      btn.title = label
+      btn.dataset.touchLabel = label
+      btn.innerHTML = `<span class="tc-tool-button__icon">${icon}</span><span class="tc-tool-button__text">${shortLabel}</span>`
 
       const activate = () => {
         this.session.setTool(tool)
@@ -90,7 +95,7 @@ export class ToolbarStrip {
       this.el.appendChild(btn)
     }
 
-    const hintBtn = this.makeIconButton('Hint', HINT_ICON)
+    const hintBtn = this.makeIconButton('Hint', 'Hint', HINT_ICON)
     hintBtn.title = 'Hint'
     const requestHint = () => {
       this.session.requestHint()
@@ -113,12 +118,14 @@ export class ToolbarStrip {
     this.el.appendChild(label)
   }
 
-  private makeIconButton(label: string, icon: string): HTMLButtonElement {
+  private makeIconButton(label: string, shortLabel: string, icon: string): HTMLButtonElement {
     const btn = document.createElement('button')
     btn.type = 'button'
     btn.className = 'tc-tool-button'
     btn.setAttribute('aria-label', label)
-    btn.innerHTML = icon
+    btn.title = label
+    btn.dataset.touchLabel = label
+    btn.innerHTML = `<span class="tc-tool-button__icon">${icon}</span><span class="tc-tool-button__text">${shortLabel}</span>`
     return btn
   }
 

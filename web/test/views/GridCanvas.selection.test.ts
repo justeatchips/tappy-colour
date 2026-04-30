@@ -231,3 +231,50 @@ describe('GridCanvas completion rendering', () => {
     canvas.unmount()
   })
 })
+
+describe('GridCanvas mouse input', () => {
+  it('paints a matching cell with a laptop mouse click', () => {
+    const session = makeSession()
+    const container = document.createElement('div')
+    Object.defineProperty(container, 'clientWidth', { value: 100 })
+    Object.defineProperty(container, 'clientHeight', { value: 50 })
+
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(() => {
+      return makeContext() as unknown as CanvasRenderingContext2D
+    })
+
+    const gridCanvas = new GridCanvas(session, container)
+    gridCanvas.mount()
+
+    vi.spyOn(HTMLCanvasElement.prototype, 'getBoundingClientRect').mockReturnValue({
+      left: 0,
+      top: 0,
+      right: 100,
+      bottom: 50,
+      width: 100,
+      height: 50,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    } as DOMRect)
+
+    const canvas = container.querySelector('canvas')!
+    canvas.dispatchEvent(new MouseEvent('mousedown', {
+      button: 0,
+      buttons: 1,
+      clientX: 30,
+      clientY: 20,
+      bubbles: true,
+    }))
+    window.dispatchEvent(new MouseEvent('mouseup', {
+      button: 0,
+      clientX: 30,
+      clientY: 20,
+      bubbles: true,
+    }))
+
+    expect(session.grid.cell(0, 0).painted).toBe(true)
+
+    gridCanvas.unmount()
+  })
+})

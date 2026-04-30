@@ -1,6 +1,7 @@
 import { openDB, type IDBPDatabase } from 'idb'
 import type { ArtworkSource } from '../model/Artwork'
 import type { PaintTool } from '../model/PaintTool'
+import type { CellShape } from '../engine/GridShape'
 
 export interface ArtworkRecord {
   id: string
@@ -15,6 +16,7 @@ export interface ArtworkRecord {
   sliderValue: number
   autoFillEnabled?: boolean | null
   imageFit?: 'cover' | 'contain' | null
+  cellShape?: CellShape | null
   gridColumns: number
   gridRows: number
   paletteJson: string // JSON.stringify(PaletteColour[])

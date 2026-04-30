@@ -104,6 +104,16 @@ describe('codec', () => {
     expect(decoded.conversionSettings.autoFillEnabled).toBe(false)
   })
 
+  it('preserves the selected cell shape', () => {
+    const original = makeMinimalArtwork({
+      conversionSettings: makeConversionSettings(0.5, { cellShape: 'hexCircle' }),
+    })
+
+    const decoded = decodeArtwork(encodeArtwork(original))
+
+    expect(decoded.conversionSettings.cellShape).toBe('hexCircle')
+  })
+
   it('defaults older records without auto-fill state to enabled', () => {
     const record = encodeArtwork(makeMinimalArtwork({
       conversionSettings: makeConversionSettings(0.5, { autoFillEnabled: false }),

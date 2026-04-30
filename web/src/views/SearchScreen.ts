@@ -1,6 +1,6 @@
 import type { Router } from '../router'
 import { View, configureScrollableRoot } from './BaseView'
-import { sanitizeQuery, filterResults, type OpenverseResult } from '../util/searchSafety'
+import { childSafeAutocomplete, sanitizeQuery, filterResults, type OpenverseResult } from '../util/searchSafety'
 import { ImportStaging } from '../model/ImportStaging'
 import type { SearchAttribution } from '../model/Artwork'
 import { blurActiveTextEditingElement, focusTextInputWhenHelpful } from '../util/focus'
@@ -9,6 +9,7 @@ import { createIconButton, createToast } from '../ui/pixel'
 const OPENVERSE_BASE = 'https://api.openverse.org/v1/images/'
 const PAGE_SIZE = 20
 const MAX_SEARCH_IMAGE_BYTES = 15 * 1024 * 1024
+const TOPIC_IMAGE_BASE = `${import.meta.env.BASE_URL}images/`
 
 const BACK_ICON = `<svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
   <path d="M13.5 5L7.5 11L13.5 17" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -21,11 +22,27 @@ const SEARCH_ICON = `<svg width="22" height="22" viewBox="0 0 22 22" fill="none"
 
 type SearchImageKind = 'full' | 'thumbnail'
 
+interface SearchTopic {
+  id: string
+  label: string
+  query: string
+  imageSrc: string
+  bundledImageId: string
+}
+
 interface SelectedImageAsset {
   blob: Blob
   kind: SearchImageKind
   url: string
 }
+
+const SEARCH_TOPICS: SearchTopic[] = [
+  { id: 'duck', label: 'Duck', query: 'duck animal', imageSrc: `${TOPIC_IMAGE_BASE}img_duck.png`, bundledImageId: 'img_duck' },
+  { id: 'cat', label: 'Cat', query: 'cat animal', imageSrc: `${TOPIC_IMAGE_BASE}img_cat.png`, bundledImageId: 'img_cat' },
+  { id: 'rocket', label: 'Rocket', query: 'rocket space', imageSrc: `${TOPIC_IMAGE_BASE}img_rocket.png`, bundledImageId: 'img_rocket' },
+  { id: 'flower', label: 'Flower', query: 'flower', imageSrc: `${TOPIC_IMAGE_BASE}img_flower.png`, bundledImageId: 'img_flower' },
+  { id: 'fish', label: 'Fish', query: 'fish animal', imageSrc: `${TOPIC_IMAGE_BASE}img_fish.png`, bundledImageId: 'img_fish' },
+]
 
 export class SearchScreen extends View {
   private root: HTMLElement | null = null
@@ -76,37 +93,113 @@ export class SearchScreen extends View {
       variant: 'primary',
     })
 
+    const suggestions = document.createElement('div')
+    suggestions.className = 'tc-search-suggestions'
+    suggestions.setAttribute('aria-label', 'Safe search ideas')
+
     const resultsArea = document.createElement('div')
     resultsArea.className = 'tc-search-results'
 
-    const doSearch = () => {
+    const updateSuggestions = () => {
+      this.renderAutocomplete(input, suggestions, resultsArea)
+    }
+
+    const doSearch = (topic: SearchTopic | null = null) => {
       input.blur()
-      void this.handleSearch(input.value, resultsArea)
+      suggestions.innerHTML = ''
+      const rawQuery = topic?.query ?? input.value
+      void this.handleSearch(rawQuery, resultsArea, topic)
     }
 
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') doSearch() })
-    searchBtn.addEventListener('click', doSearch)
+    input.addEventListener('input', updateSuggestions)
+    input.addEventListener('focus', updateSuggestions)
+    searchBtn.addEventListener('click', () => doSearch())
     searchBtn.addEventListener('touchend', (e) => { e.preventDefault(); doSearch() })
 
     header.appendChild(backBtn)
     header.appendChild(input)
     header.appendChild(searchBtn)
 
-    this.showPlaceholder(resultsArea)
+    this.showPlaceholder(resultsArea, (topic) => {
+      input.value = topic.label
+      doSearch(topic)
+    })
 
     page.appendChild(header)
+    page.appendChild(suggestions)
     page.appendChild(resultsArea)
     this.root.appendChild(page)
 
     setTimeout(() => focusTextInputWhenHelpful(input), 50)
   }
 
-  private showPlaceholder(area: HTMLElement): void {
+  private renderAutocomplete(
+    input: HTMLInputElement,
+    container: HTMLElement,
+    area: HTMLElement
+  ): void {
+    container.innerHTML = ''
+    const suggestions = childSafeAutocomplete(input.value)
+    if (suggestions.length === 0) return
+
+    for (const suggestion of suggestions) {
+      const button = document.createElement('button')
+      button.type = 'button'
+      button.className = 'tc-search-suggestion'
+      button.textContent = suggestion
+      button.setAttribute('aria-label', `Search ${suggestion}`)
+      button.addEventListener('click', () => {
+        input.value = suggestion
+        container.innerHTML = ''
+        const topic = this.topicForSuggestion(suggestion)
+        void this.handleSearch(topic?.query ?? suggestion, area, topic)
+      })
+      container.appendChild(button)
+    }
+  }
+
+  private topicForSuggestion(suggestion: string): SearchTopic | null {
+    const normalised = suggestion.toLowerCase()
+    return SEARCH_TOPICS.find(topic =>
+      topic.label.toLowerCase() === normalised ||
+      topic.query.toLowerCase() === normalised
+    ) ?? null
+  }
+
+  private showPlaceholder(area: HTMLElement, onTopicSearch: (topic: SearchTopic) => void): void {
     area.innerHTML = ''
-    const msg = document.createElement('p')
-    msg.className = 'tc-empty-state px-panel'
-    msg.textContent = 'Type something to search for free pictures!'
-    area.appendChild(msg)
+    const picker = document.createElement('div')
+    picker.className = 'tc-topic-picker'
+
+    for (const topic of SEARCH_TOPICS) {
+      picker.appendChild(this.makeTopicCard(topic, onTopicSearch))
+    }
+
+    area.appendChild(picker)
+  }
+
+  private makeTopicCard(topic: SearchTopic, onTopicSearch: (topic: SearchTopic) => void): HTMLElement {
+    const card = document.createElement('button')
+    card.type = 'button'
+    card.className = 'tc-topic-card'
+    card.dataset.searchTopic = topic.id
+    card.setAttribute('aria-label', `Search ${topic.label}`)
+
+    const img = document.createElement('img')
+    img.src = topic.imageSrc
+    img.alt = ''
+    card.appendChild(img)
+
+    const label = document.createElement('span')
+    label.textContent = topic.label
+    card.appendChild(label)
+
+    const select = () => onTopicSearch(topic)
+    card.addEventListener('click', select)
+    card.addEventListener('touchend', (e) => { e.preventDefault(); select() })
+
+    return card
   }
 
   private showLoading(area: HTMLElement): void {
@@ -125,10 +218,10 @@ export class SearchScreen extends View {
     area.appendChild(msg)
   }
 
-  private showResults(area: HTMLElement, results: OpenverseResult[]): void {
+  private showResults(area: HTMLElement, results: OpenverseResult[], topic: SearchTopic | null = null): void {
     area.innerHTML = ''
 
-    if (results.length === 0) {
+    if (results.length === 0 && !topic) {
       const msg = document.createElement('p')
       msg.className = 'tc-empty-state px-panel'
       msg.textContent = 'No pictures found - try different words!'
@@ -138,6 +231,10 @@ export class SearchScreen extends View {
 
     const grid = document.createElement('div')
     grid.className = 'tc-search-results-grid'
+
+    if (topic) {
+      grid.appendChild(this.makeTopicResultCard(topic))
+    }
 
     for (const result of results) {
       grid.appendChild(this.makeResultCard(result))
@@ -178,7 +275,33 @@ export class SearchScreen extends View {
     return card
   }
 
-  private async handleSearch(rawQuery: string, area: HTMLElement): Promise<void> {
+  private makeTopicResultCard(topic: SearchTopic): HTMLElement {
+    const card = document.createElement('button')
+    card.type = 'button'
+    card.className = 'tc-search-card tc-search-card--topic'
+    card.dataset.topicResult = topic.id
+    card.setAttribute('aria-label', `Use ${topic.label}`)
+
+    const img = document.createElement('img')
+    img.src = topic.imageSrc
+    img.alt = topic.label
+    card.appendChild(img)
+
+    const label = document.createElement('span')
+    label.className = 'tc-search-card__badge'
+    label.textContent = 'TAPPY'
+    card.appendChild(label)
+
+    card.addEventListener('click', () => this.router.navigate(`#/difficulty/${topic.bundledImageId}`))
+    card.addEventListener('touchend', (e) => {
+      e.preventDefault()
+      this.router.navigate(`#/difficulty/${topic.bundledImageId}`)
+    })
+
+    return card
+  }
+
+  private async handleSearch(rawQuery: string, area: HTMLElement, topic: SearchTopic | null = null): Promise<void> {
     const query = sanitizeQuery(rawQuery)
     if (!query) {
       this.showError(area, "That search isn't available - try something else!")
@@ -208,9 +331,13 @@ export class SearchScreen extends View {
 
       const data = await res.json() as { results: OpenverseResult[] }
       const filtered = filterResults(data.results ?? [])
-      this.showResults(area, filtered)
+      this.showResults(area, filtered, topic)
     } catch (err) {
       if ((err as Error).name === 'AbortError') return
+      if (topic) {
+        this.showResults(area, [], topic)
+        return
+      }
       this.showError(area, "Can't connect - check your internet connection.")
     }
   }

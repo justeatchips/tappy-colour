@@ -14,6 +14,35 @@ import { ManagedObjectUrls } from '../util/objectUrl'
 import { canPrintColourSheet, printArtworkSheet } from '../util/printSheet'
 import { createPanel, createPxButton, createTopBar } from '../ui/pixel'
 
+const HOME_ICON = `<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M2 8.2L9 2l7 6.2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M4.5 7.5V16h9V7.5" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+</svg>`
+
+const FIT_ICON = `<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M3 7V3h4M11 3h4v4M15 11v4h-4M7 15H3v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`
+
+const UNDO_ICON = `<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M6.5 5H3v3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M3.5 8A6 6 0 1110 14.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+</svg>`
+
+const CREDIT_ICON = `<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="2"/>
+  <path d="M9 8v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="9" cy="5.2" r="1" fill="currentColor"/>
+</svg>`
+
+const PRINT_ICON = `<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M5 6V2h8v4M5 13H3V7h12v6h-2M5 11h8v5H5v-5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+</svg>`
+
+const PHOTO_ICON = `<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="2.5" y="3" width="13" height="12" rx="1.5" stroke="currentColor" stroke-width="2"/>
+  <path d="M4.5 13l3-3.5 2 2.3 1.4-1.5L15 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`
+
 export class PuzzleContainer extends View {
   private root: HTMLElement | null = null
   private session: PaintingSession | null = null
@@ -65,6 +94,7 @@ export class PuzzleContainer extends View {
 
     const backBtn = createPxButton({
       label: 'HOME',
+      icon: HOME_ICON,
       variant: 'ghost',
       size: 'sm',
       onClick: () => this.router.navigate('#/'),
@@ -75,6 +105,7 @@ export class PuzzleContainer extends View {
 
     const resetZoomBtn = createPxButton({
       label: 'FIT',
+      icon: FIT_ICON,
       ariaLabel: 'Reset zoom',
       variant: 'ghost',
       size: 'sm',
@@ -83,6 +114,7 @@ export class PuzzleContainer extends View {
 
     const undoBtn = createPxButton({
       label: 'UNDO',
+      icon: UNDO_ICON,
       variant: 'ghost',
       size: 'sm',
       onClick: () => session.undo(),
@@ -90,6 +122,7 @@ export class PuzzleContainer extends View {
 
     const attributionBtn = createPxButton({
       label: 'CREDIT',
+      icon: CREDIT_ICON,
       variant: 'ghost',
       size: 'sm',
     })
@@ -99,6 +132,7 @@ export class PuzzleContainer extends View {
 
     const printBtn = createPxButton({
       label: 'PRINT',
+      icon: PRINT_ICON,
       variant: 'ghost',
       size: 'sm',
     })
@@ -112,6 +146,7 @@ export class PuzzleContainer extends View {
 
     const sourceToggleBtn = createPxButton({
       label: 'PHOTO',
+      icon: PHOTO_ICON,
       variant: 'accent',
       size: 'sm',
     })
@@ -243,7 +278,8 @@ export class PuzzleContainer extends View {
     }
 
     this.sourceToggleBtn.hidden = !canToggle
-    this.sourceToggleBtn.textContent = this.showingSourceImage ? 'PAINT' : 'PHOTO'
+    const label = this.sourceToggleBtn.querySelector<HTMLElement>('.px-button__label')
+    if (label) label.textContent = this.showingSourceImage ? 'PAINT' : 'PHOTO'
     this.sourceToggleBtn.setAttribute('aria-pressed', String(this.showingSourceImage))
 
     if (this.sourceImageEl) {

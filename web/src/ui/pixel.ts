@@ -17,6 +17,7 @@ function appendContent(button: HTMLButtonElement, label?: string, icon?: string)
     const iconEl = document.createElement('span')
     iconEl.className = 'px-button__icon'
     iconEl.innerHTML = icon
+    removeWhitespaceTextNodes(iconEl)
     button.appendChild(iconEl)
   }
 
@@ -25,6 +26,16 @@ function appendContent(button: HTMLButtonElement, label?: string, icon?: string)
     labelEl.className = 'px-button__label'
     labelEl.textContent = label
     button.appendChild(labelEl)
+  }
+}
+
+function removeWhitespaceTextNodes(root: Node): void {
+  for (const child of [...root.childNodes]) {
+    if (child.nodeType === Node.TEXT_NODE && child.textContent?.trim() === '') {
+      child.remove()
+    } else {
+      removeWhitespaceTextNodes(child)
+    }
   }
 }
 
@@ -45,6 +56,12 @@ export function createPxButton(options: ButtonOptions): HTMLButtonElement {
   appendContent(button, options.label, options.icon)
 
   if (options.ariaLabel) button.setAttribute('aria-label', options.ariaLabel)
+  if (options.ariaLabel) {
+    button.title = options.ariaLabel
+    button.dataset.touchLabel = options.ariaLabel
+  } else if (options.label) {
+    button.title = options.label
+  }
   if (options.onClick) button.addEventListener('click', options.onClick)
 
   return button

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   assessSearchResultSafety,
+  childSafeAutocomplete,
   filterResults,
   sanitizeQuery,
   type OpenverseResult,
@@ -29,6 +30,12 @@ describe('search safety', () => {
     expect(sanitizeQuery('  cute kitten <script>  ')).toBe('cute kitten script')
     expect(sanitizeQuery('toy gun')).toBeNull()
     expect(sanitizeQuery('')).toBeNull()
+  })
+
+  it('offers only curated child-safe autocomplete suggestions', () => {
+    expect(childSafeAutocomplete('ca')).toContain('cat')
+    expect(childSafeAutocomplete('toy gun')).toEqual([])
+    expect(childSafeAutocomplete('', 3)).toHaveLength(3)
   })
 
   it('keeps recorded safe responses with descriptive metadata', () => {

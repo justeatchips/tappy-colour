@@ -15,6 +15,7 @@ import { ManagedObjectUrls } from '../util/objectUrl'
 import { UserSettings } from '../model/UserSettings'
 import { decodeAndDownscale } from '../util/imageImport'
 import { createPanel, createPxButton, createToast } from '../ui/pixel'
+import type { CellShape } from '../engine/GridShape'
 
 export class DifficultyPicker extends View {
   private root: HTMLElement | null = null
@@ -25,6 +26,7 @@ export class DifficultyPicker extends View {
   private previewCards: Array<{ sliderValue: number; element: HTMLElement }> = []
   private previewCanvases: Array<{ canvas: HTMLCanvasElement; gridSize: number }> = []
   private imageFit: ImageFit = 'cover'
+  private cellShape: CellShape = 'square'
   private objectUrls = new ManagedObjectUrls()
 
   constructor(
@@ -153,6 +155,7 @@ export class DifficultyPicker extends View {
     const initialSettings = makeConversionSettings(this.sliderValue, {
       autoFillEnabled: UserSettings.get().autoFillEnabled,
       imageFit: this.imageFit,
+      cellShape: this.cellShape,
     })
     this.updateStatsDisplay(initialSettings)
     this.updatePreviewSelection()
@@ -176,6 +179,12 @@ export class DifficultyPicker extends View {
     fitControls.appendChild(this.makeFitButton('contain', 'FIT'))
     panel.appendChild(fitControls)
 
+    const shapeControls = document.createElement('div')
+    shapeControls.className = 'difficulty-shape-controls'
+    shapeControls.appendChild(this.makeShapeButton('square', 'SQUARES'))
+    shapeControls.appendChild(this.makeShapeButton('hexCircle', 'HEX CIRCLE'))
+    panel.appendChild(shapeControls)
+
     const previewGrid = document.createElement('div')
     previewGrid.className = 'difficulty-preview-grid'
 
@@ -185,6 +194,7 @@ export class DifficultyPicker extends View {
 
     panel.appendChild(previewGrid)
     this.updateFitButtons(panel)
+    this.updateShapeButtons(panel)
     return panel
   }
 
@@ -204,6 +214,38 @@ export class DifficultyPicker extends View {
     this.imageFit = fit
     this.updateFitButtons()
     this.renderPreviewCanvases()
+  }
+
+  private makeShapeButton(shape: CellShape, label: string): HTMLButtonElement {
+    const button = createPxButton({
+      label,
+      variant: 'ghost',
+      className: 'difficulty-shape-button',
+      onClick: () => this.setCellShape(shape),
+    })
+    button.setAttribute('data-cell-shape', shape)
+    return button
+  }
+
+  private setCellShape(shape: CellShape): void {
+    if (this.cellShape === shape) return
+    this.cellShape = shape
+    this.updateShapeButtons()
+    this.renderPreviewCanvases()
+    const settings = makeConversionSettings(this.sliderValue, {
+      autoFillEnabled: UserSettings.get().autoFillEnabled,
+      imageFit: this.imageFit,
+      cellShape: this.cellShape,
+    })
+    this.updateStatsDisplay(settings)
+  }
+
+  private updateShapeButtons(root: ParentNode = this.root ?? document): void {
+    const buttons = root.querySelectorAll<HTMLButtonElement>('[data-cell-shape]')
+    for (const button of buttons) {
+      const selected = button.dataset.cellShape === this.cellShape
+      button.setAttribute('aria-pressed', String(selected))
+    }
   }
 
   private updateFitButtons(root: ParentNode = this.root ?? document): void {
@@ -280,6 +322,7 @@ export class DifficultyPicker extends View {
     const settings = makeConversionSettings(this.sliderValue, {
       autoFillEnabled: UserSettings.get().autoFillEnabled,
       imageFit: this.imageFit,
+      cellShape: this.cellShape,
     })
     this.updateStatsDisplay(settings)
     this.chickRow?.update(this.sliderValue)
@@ -405,6 +448,7 @@ export class DifficultyPicker extends View {
       const settings = makeConversionSettings(this.sliderValue, {
         autoFillEnabled: UserSettings.get().autoFillEnabled,
         imageFit: this.imageFit,
+        cellShape: this.cellShape,
       })
       let output: Awaited<ReturnType<typeof convert>>
       let thumbnail: Blob | undefined

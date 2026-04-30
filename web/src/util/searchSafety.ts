@@ -78,6 +78,45 @@ const GENERIC_TITLE_PATTERNS = [
   /^\d+$/,
 ]
 
+const CHILD_SAFE_AUTOCOMPLETE_TERMS = [
+  'airplane',
+  'apple',
+  'beach',
+  'bird',
+  'butterfly',
+  'car',
+  'castle',
+  'cat',
+  'chick',
+  'dinosaur',
+  'dog',
+  'duck',
+  'fish',
+  'flower',
+  'forest',
+  'frog',
+  'garden',
+  'horse',
+  'kite',
+  'koala',
+  'lion',
+  'moon',
+  'mountain',
+  'penguin',
+  'puppy',
+  'rainbow',
+  'rocket',
+  'sheep',
+  'snail',
+  'space',
+  'star',
+  'sun',
+  'train',
+  'tree',
+  'turtle',
+  'unicorn',
+]
+
 const UNSAFE_SET = new Set(UNSAFE_WORDS)
 const UNSAFE_SAFETY_SET = new Set(UNSAFE_SAFETY_VALUES)
 
@@ -102,6 +141,21 @@ export function sanitizeQuery(raw: string): string | null {
   if (containsBlockedTerm(trimmed)) return null
   // Strip any characters that could cause injection/escaping issues
   return trimmed.replace(/[<>"'\\]/g, '').slice(0, 100)
+}
+
+export function childSafeAutocomplete(raw: string, limit = 6): string[] {
+  const query = normaliseText(raw)
+  if (!query) return CHILD_SAFE_AUTOCOMPLETE_TERMS.slice(0, limit)
+  if (containsBlockedTerm(query)) return []
+
+  const startsWith = CHILD_SAFE_AUTOCOMPLETE_TERMS.filter(term => term.startsWith(query))
+  const includes = CHILD_SAFE_AUTOCOMPLETE_TERMS.filter(term =>
+    !term.startsWith(query) && term.includes(query)
+  )
+
+  return [...startsWith, ...includes]
+    .filter(term => sanitizeQuery(term) !== null)
+    .slice(0, limit)
 }
 
 export interface OpenverseResult {

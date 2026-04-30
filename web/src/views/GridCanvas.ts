@@ -3,6 +3,12 @@ import type { CellCoord } from '../engine/types'
 import { setupHiDpiCanvas } from '../util/dpr'
 import { primaryTouch } from '../util/touch'
 import { unlockAudio } from '../util/sound'
+import {
+  hexCellCenter,
+  hexLayoutFor,
+  isCellActiveForShape,
+  pointInPointyHex,
+} from '../engine/GridShape'
 
 export class GridCanvas {
   private canvas: HTMLCanvasElement
@@ -18,6 +24,9 @@ export class GridCanvas {
   private readonly boundOnTouchStart: (e: TouchEvent) => void
   private readonly boundOnTouchMove: (e: TouchEvent) => void
   private readonly boundOnTouchEnd: (e: TouchEvent) => void
+  private readonly boundOnMouseDown: (e: MouseEvent) => void
+  private readonly boundOnMouseMove: (e: MouseEvent) => void
+  private readonly boundOnMouseUp: (e: MouseEvent) => void
   private readonly boundOnWheel: (e: WheelEvent) => void
 
   // Zoom & pan
@@ -45,6 +54,7 @@ export class GridCanvas {
   private paintStartRow = -1
   private lastTouchX = 0
   private lastTouchY = 0
+  private mouseDown = false
 
   constructor(private session: PaintingSession, private container: HTMLElement) {
     this.canvas = document.createElement('canvas')
@@ -69,6 +79,9 @@ export class GridCanvas {
     this.boundOnTouchStart = this.onTouchStart.bind(this)
     this.boundOnTouchMove = this.onTouchMove.bind(this)
     this.boundOnTouchEnd = this.onTouchEnd.bind(this)
+    this.boundOnMouseDown = this.onMouseDown.bind(this)
+    this.boundOnMouseMove = this.onMouseMove.bind(this)
+    this.boundOnMouseUp = this.onMouseUp.bind(this)
     this.boundOnWheel = this.onWheel.bind(this)
   }
 
@@ -134,6 +147,9 @@ export class GridCanvas {
     this.canvas.addEventListener('touchmove', this.boundOnTouchMove, { passive: false })
     this.canvas.addEventListener('touchend', this.boundOnTouchEnd, { passive: false })
     this.canvas.addEventListener('touchcancel', this.boundOnTouchEnd, { passive: false })
+    this.canvas.addEventListener('mousedown', this.boundOnMouseDown)
+    window.addEventListener('mousemove', this.boundOnMouseMove)
+    window.addEventListener('mouseup', this.boundOnMouseUp)
 
     // Wheel event for desktop zoom
     this.canvas.addEventListener('wheel', this.boundOnWheel, { passive: false })
@@ -143,6 +159,9 @@ export class GridCanvas {
       this.canvas.removeEventListener('touchmove', this.boundOnTouchMove)
       this.canvas.removeEventListener('touchend', this.boundOnTouchEnd)
       this.canvas.removeEventListener('touchcancel', this.boundOnTouchEnd)
+      this.canvas.removeEventListener('mousedown', this.boundOnMouseDown)
+      window.removeEventListener('mousemove', this.boundOnMouseMove)
+      window.removeEventListener('mouseup', this.boundOnMouseUp)
       this.canvas.removeEventListener('wheel', this.boundOnWheel)
     })
   }
@@ -176,9 +195,18 @@ export class GridCanvas {
     const cols = this.session.grid.columns
     const rows = this.session.grid.rows
 
-    this.cellSize = Math.floor(Math.min(w, h) / Math.max(cols, rows))
-    const gridWidth = this.cellSize * cols
-    const gridHeight = this.cellSize * rows
+    let gridWidth: number
+    let gridHeight: number
+    if (this.session.cellShape === 'hexCircle') {
+      const layout = hexLayoutFor(cols, rows)
+      this.cellSize = Math.max(1, Math.floor(Math.min(w / layout.width, h / layout.height)))
+      gridWidth = layout.width * this.cellSize
+      gridHeight = layout.height * this.cellSize
+    } else {
+      this.cellSize = Math.floor(Math.min(w, h) / Math.max(cols, rows))
+      gridWidth = this.cellSize * cols
+      gridHeight = this.cellSize * rows
+    }
 
     this.offsetX = Math.floor((w - gridWidth) / 2)
     this.offsetY = Math.floor((h - gridHeight) / 2)
@@ -208,24 +236,55 @@ export class GridCanvas {
     const palette = this.session.palette
     const effectiveCellSize = this.cellSize * this.scale
     const showCellBoundaries = !this.session.isComplete
+    const isHexCircle = this.session.cellShape === 'hexCircle'
+    const hexLayout = isHexCircle ? hexLayoutFor(grid.columns, grid.rows, effectiveCellSize) : null
 
     for (let col = 0; col < grid.columns; col++) {
       for (let row = 0; row < grid.rows; row++) {
-        const x = this.panX + col * effectiveCellSize
-        const y = this.panY + row * effectiveCellSize
+        if (!this.isCellActive(col, row)) continue
+
         const cell = grid.cell(col, row)
         const isSelected = !cell.painted && cell.paletteIndex === this.session.selectedPaletteIndex
-
-        this.ctx.fillStyle = cell.painted
+        const fillStyle = cell.painted
           ? palette.cssString(cell.paletteIndex)
           : isSelected
             ? this.selectedCellFill(cell.paletteIndex)
             : '#f5f5f5'
+        const strokeStyle = isSelected ? '#111827' : '#ddd'
+        const strokeWidth = isSelected ? Math.max(2, Math.min(4, effectiveCellSize * 0.08)) : 1
+
+        if (hexLayout) {
+          const center = hexCellCenter(col, row, hexLayout)
+          const cx = this.panX + center.x
+          const cy = this.panY + center.y
+          this.drawHexCell(cx, cy, effectiveCellSize, fillStyle, showCellBoundaries ? strokeStyle : null, strokeWidth)
+
+          if (showCellBoundaries && isSelected && this.hintOpacity > 0) {
+            this.drawHexCell(cx, cy, Math.max(1, effectiveCellSize - 1), this.hintCellFill(), this.hintStroke(), Math.max(3, Math.min(6, effectiveCellSize * 0.12)))
+          }
+
+          if (showCellBoundaries && this.wrongCellOpacity > 0 && this.wrongCell?.col === col && this.wrongCell.row === row) {
+            this.drawHexCell(
+              cx,
+              cy,
+              Math.max(1, effectiveCellSize - 1),
+              `rgba(239, 68, 68, ${Math.round(this.wrongCellOpacity * 18) / 100})`,
+              `rgba(220, 38, 38, ${Math.round(this.wrongCellOpacity * 95) / 100})`,
+              Math.max(3, Math.min(6, effectiveCellSize * 0.12))
+            )
+          }
+          continue
+        }
+
+        const x = this.panX + col * effectiveCellSize
+        const y = this.panY + row * effectiveCellSize
+
+        this.ctx.fillStyle = fillStyle
         this.ctx.fillRect(x, y, effectiveCellSize, effectiveCellSize)
 
         if (showCellBoundaries) {
-          this.ctx.strokeStyle = isSelected ? '#111827' : '#ddd'
-          this.ctx.lineWidth = isSelected ? Math.max(2, Math.min(4, effectiveCellSize * 0.08)) : 1
+          this.ctx.strokeStyle = strokeStyle
+          this.ctx.lineWidth = strokeWidth
           this.ctx.strokeRect(x, y, effectiveCellSize, effectiveCellSize)
         }
 
@@ -248,6 +307,42 @@ export class GridCanvas {
     }
   }
 
+  private drawHexCell(
+    centerX: number,
+    centerY: number,
+    radius: number,
+    fillStyle: string,
+    strokeStyle: string | null,
+    lineWidth: number
+  ): void {
+    if (!this.ctx) return
+    this.traceHexPath(this.ctx, centerX, centerY, radius)
+    this.ctx.fillStyle = fillStyle
+    this.ctx.fill()
+    if (strokeStyle) {
+      this.ctx.strokeStyle = strokeStyle
+      this.ctx.lineWidth = lineWidth
+      this.ctx.stroke()
+    }
+  }
+
+  private traceHexPath(
+    ctx: CanvasRenderingContext2D,
+    centerX: number,
+    centerY: number,
+    radius: number
+  ): void {
+    ctx.beginPath()
+    for (let i = 0; i < 6; i++) {
+      const angle = -Math.PI / 2 + i * Math.PI / 3
+      const x = centerX + Math.cos(angle) * radius
+      const y = centerY + Math.sin(angle) * radius
+      if (i === 0) ctx.moveTo(x, y)
+      else ctx.lineTo(x, y)
+    }
+    ctx.closePath()
+  }
+
   private renderNumbers(): void {
     if (!this.numbersCtx) return
 
@@ -256,6 +351,8 @@ export class GridCanvas {
     const grid = this.session.grid
     const palette = this.session.palette
     const effectiveCellSize = this.cellSize * this.scale
+    const isHexCircle = this.session.cellShape === 'hexCircle'
+    const hexLayout = isHexCircle ? hexLayoutFor(grid.columns, grid.rows, effectiveCellSize) : null
 
     if (effectiveCellSize < 12) return
 
@@ -267,13 +364,20 @@ export class GridCanvas {
 
     for (let col = 0; col < grid.columns; col++) {
       for (let row = 0; row < grid.rows; row++) {
+        if (!this.isCellActive(col, row)) continue
         const cell = grid.cell(col, row)
         if (!cell.painted) {
           const isSelected = cell.paletteIndex === this.session.selectedPaletteIndex
           const colourEntry = palette.colours[cell.paletteIndex]
           const number = colourEntry ? colourEntry.number : cell.paletteIndex + 1
-          const x = this.panX + col * effectiveCellSize + effectiveCellSize / 2
-          const y = this.panY + row * effectiveCellSize + effectiveCellSize / 2
+          const center = hexLayout
+            ? hexCellCenter(col, row, hexLayout)
+            : {
+                x: col * effectiveCellSize + effectiveCellSize / 2,
+                y: row * effectiveCellSize + effectiveCellSize / 2,
+              }
+          const x = this.panX + center.x
+          const y = this.panY + center.y
           if (isSelected) {
             this.numbersCtx.font = `900 ${Math.max(fontSize + 2, Math.floor(effectiveCellSize * 0.55))}px -apple-system, system-ui, sans-serif`
             this.numbersCtx.fillStyle = '#111827'
@@ -351,11 +455,28 @@ export class GridCanvas {
     this.wrongCellTimers = []
   }
 
+  private isCellActive(col: number, row: number): boolean {
+    return isCellActiveForShape(
+      col,
+      row,
+      this.session.grid.columns,
+      this.session.grid.rows,
+      this.session.cellShape
+    )
+  }
+
   private cellAt(clientX: number, clientY: number): CellCoord | null {
     const rect = this.canvas.getBoundingClientRect()
     const effectiveCellSize = this.cellSize * this.scale
-    const x = (clientX - rect.left - this.panX) / effectiveCellSize
-    const y = (clientY - rect.top - this.panY) / effectiveCellSize
+    const localX = clientX - rect.left - this.panX
+    const localY = clientY - rect.top - this.panY
+
+    if (this.session.cellShape === 'hexCircle') {
+      return this.hexCellAt(localX, localY, effectiveCellSize)
+    }
+
+    const x = localX / effectiveCellSize
+    const y = localY / effectiveCellSize
 
     const col = Math.floor(x)
     const row = Math.floor(y)
@@ -365,6 +486,38 @@ export class GridCanvas {
     }
 
     return { col, row }
+  }
+
+  private hexCellAt(localX: number, localY: number, radius: number): CellCoord | null {
+    const grid = this.session.grid
+    const layout = hexLayoutFor(grid.columns, grid.rows, radius)
+    const estimatedRow = Math.round((localY - radius) / layout.verticalStep)
+
+    let best: CellCoord | null = null
+    let bestDistance = Number.POSITIVE_INFINITY
+
+    for (let row = estimatedRow - 1; row <= estimatedRow + 1; row++) {
+      if (row < 0 || row >= grid.rows) continue
+      const rowOffset = (row % 2) * layout.hexWidth / 2
+      const estimatedCol = Math.round((localX - rowOffset - layout.hexWidth / 2) / layout.hexWidth)
+
+      for (let col = estimatedCol - 1; col <= estimatedCol + 1; col++) {
+        if (col < 0 || col >= grid.columns || !this.isCellActive(col, row)) continue
+
+        const center = hexCellCenter(col, row, layout)
+        if (!pointInPointyHex(localX, localY, center.x, center.y, radius)) continue
+
+        const dx = localX - center.x
+        const dy = localY - center.y
+        const distance = dx * dx + dy * dy
+        if (distance < bestDistance) {
+          bestDistance = distance
+          best = { col, row }
+        }
+      }
+    }
+
+    return best
   }
 
   private onTouchStart(e: TouchEvent): void {
@@ -390,30 +543,10 @@ export class GridCanvas {
     }
 
     e.preventDefault()
-    unlockAudio()
 
     const touch = primaryTouch(e)
     if (!touch) return
-
-    this.lastTouchX = touch.clientX
-    this.lastTouchY = touch.clientY
-
-    const cell = this.cellAt(touch.clientX, touch.clientY)
-    if (!cell) return
-
-    this.paintStartCol = cell.col
-    this.paintStartRow = cell.row
-    this.touchState = 'pendingPaint'
-
-    // Set timer for drag escalation — only in tap mode
-    this.pendingTimer = setTimeout(() => {
-      if (this.touchState === 'pendingPaint' && e.touches.length === 1 && this.session.currentTool === 'tap') {
-        this.touchState = 'painting'
-        this.session.dragBegan()
-        this.session.dragMoved(this.paintStartCol, this.paintStartRow)
-        this.render()
-      }
-    }, 10)
+    this.beginPointerPaint(touch.clientX, touch.clientY)
   }
 
   private onTouchMove(e: TouchEvent): void {
@@ -445,20 +578,67 @@ export class GridCanvas {
 
     const touch = primaryTouch(e)
     if (!touch) return
+    this.movePointerPaint(touch.clientX, touch.clientY)
+  }
 
-    const cell = this.cellAt(touch.clientX, touch.clientY)
+  private onTouchEnd(e: TouchEvent): void {
+    e.preventDefault()
+    this.finishPointerPaint()
+  }
+
+  private onMouseDown(e: MouseEvent): void {
+    if (e.button !== 0 && e.buttons !== 1) return
+    e.preventDefault()
+    this.mouseDown = true
+    this.beginPointerPaint(e.clientX, e.clientY)
+  }
+
+  private onMouseMove(e: MouseEvent): void {
+    if (!this.mouseDown) return
+    e.preventDefault()
+    this.movePointerPaint(e.clientX, e.clientY)
+  }
+
+  private onMouseUp(e: MouseEvent): void {
+    if (!this.mouseDown) return
+    e.preventDefault()
+    this.mouseDown = false
+    this.finishPointerPaint()
+  }
+
+  private beginPointerPaint(clientX: number, clientY: number): void {
+    unlockAudio()
+
+    this.lastTouchX = clientX
+    this.lastTouchY = clientY
+
+    const cell = this.cellAt(clientX, clientY)
+    if (!cell) return
+
+    this.paintStartCol = cell.col
+    this.paintStartRow = cell.row
+    this.touchState = 'pendingPaint'
+
+    this.pendingTimer = setTimeout(() => {
+      if (this.touchState === 'pendingPaint' && this.session.currentTool === 'tap') {
+        this.touchState = 'painting'
+        this.session.dragBegan()
+        this.session.dragMoved(this.paintStartCol, this.paintStartRow)
+        this.render()
+      }
+    }, 10)
+  }
+
+  private movePointerPaint(clientX: number, clientY: number): void {
+    const cell = this.cellAt(clientX, clientY)
 
     if (this.touchState === 'pendingPaint') {
-      // Check if moved > 5px — only escalate to drag in tap mode
-      const dx = touch.clientX - this.lastTouchX
-      const dy = touch.clientY - this.lastTouchY
+      const dx = clientX - this.lastTouchX
+      const dy = clientY - this.lastTouchY
       const distance = Math.sqrt(dx * dx + dy * dy)
 
       if (distance > 5 && this.session.currentTool === 'tap') {
-        if (this.pendingTimer !== null) {
-          clearTimeout(this.pendingTimer)
-          this.pendingTimer = null
-        }
+        this.clearPendingTimer()
 
         this.touchState = 'painting'
         this.session.dragBegan()
@@ -468,25 +648,19 @@ export class GridCanvas {
         }
         this.render()
       }
-    } else if (this.touchState === 'painting') {
-      if (cell) {
-        this.session.dragMoved(cell.col, cell.row)
-      }
+    } else if (this.touchState === 'painting' && cell) {
+      this.session.dragMoved(cell.col, cell.row)
     }
   }
 
-  private onTouchEnd(e: TouchEvent): void {
-    e.preventDefault()
+  private finishPointerPaint(): void {
 
     if (this.touchState === 'pinching') {
       this.touchState = 'idle'
       return
     }
 
-    if (this.pendingTimer !== null) {
-      clearTimeout(this.pendingTimer)
-      this.pendingTimer = null
-    }
+    this.clearPendingTimer()
 
     const tool = this.session.currentTool
 
@@ -510,11 +684,22 @@ export class GridCanvas {
     this.touchState = 'idle'
   }
 
+  private clearPendingTimer(): void {
+    if (this.pendingTimer !== null) {
+      clearTimeout(this.pendingTimer)
+      this.pendingTimer = null
+    }
+  }
+
   private clampPan(panX: number, panY: number): { panX: number; panY: number } {
     const w = this.canvas.clientWidth
     const h = this.canvas.clientHeight
-    const scaledGridW = this.cellSize * this.scale * this.session.grid.columns
-    const scaledGridH = this.cellSize * this.scale * this.session.grid.rows
+    const effectiveCellSize = this.cellSize * this.scale
+    const hexLayout = this.session.cellShape === 'hexCircle'
+      ? hexLayoutFor(this.session.grid.columns, this.session.grid.rows, effectiveCellSize)
+      : null
+    const scaledGridW = hexLayout?.width ?? effectiveCellSize * this.session.grid.columns
+    const scaledGridH = hexLayout?.height ?? effectiveCellSize * this.session.grid.rows
     const margin = 60
     return {
       panX: Math.min(w - margin, Math.max(margin - scaledGridW, panX)),

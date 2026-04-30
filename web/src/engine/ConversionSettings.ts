@@ -1,9 +1,12 @@
+import { DEFAULT_CELL_SHAPE, normaliseCellShape, type CellShape } from './GridShape'
+
 export interface ConversionSettings {
   sliderValue: number
   gridSize: number
   paletteSize: number
   autoFillEnabled: boolean
   imageFit?: 'cover' | 'contain'
+  cellShape?: CellShape
 }
 
 function clamp(v: number, lo: number, hi: number): number {
@@ -12,7 +15,7 @@ function clamp(v: number, lo: number, hi: number): number {
 
 export function makeConversionSettings(
   sliderValue: number,
-  opts: { autoFillEnabled?: boolean; imageFit?: 'cover' | 'contain' } = {}
+  opts: { autoFillEnabled?: boolean; imageFit?: 'cover' | 'contain'; cellShape?: CellShape } = {}
 ): ConversionSettings {
   const s = clamp(sliderValue, 0, 1)
   return {
@@ -21,5 +24,6 @@ export function makeConversionSettings(
     paletteSize: clamp(Math.round(6 + s * 18), 6, 24),
     autoFillEnabled: opts.autoFillEnabled ?? true,
     imageFit: opts.imageFit ?? 'cover',
+    cellShape: opts.cellShape ? normaliseCellShape(opts.cellShape) : DEFAULT_CELL_SHAPE,
   }
 }
