@@ -7,7 +7,7 @@ import { createGalleryCard } from './GalleryCard'
 import { showConfirmDialog } from './ConfirmDialog'
 import { ManagedObjectUrls } from '../util/objectUrl'
 import { ImportStaging } from '../model/ImportStaging'
-import { pickImageFromLibrary, captureImageFromCamera, decodeAndDownscale } from '../util/imageImport'
+import { pickImagesFromLibrary, captureImageFromCamera, decodeAndDownscale } from '../util/imageImport'
 import { UserSettings } from '../model/UserSettings'
 import { mascotImageUrl, getMascotById, loadMascots, resolveMascotId } from '../model/Mascots'
 import { getSearchAccess } from '../util/searchAccess'
@@ -227,12 +227,6 @@ export class HomeScreen extends View {
       card.className = 'px-panel gallery-card'
       card.style.cssText = 'cursor: pointer; text-align: center; padding: 10px; font-family: inherit; width: 100%;'
 
-      // Hide delete button for starters
-      if (isStarter) {
-        const deleteBtn = card.querySelector('button[aria-label="Delete"]') as HTMLElement | null
-        if (deleteBtn) deleteBtn.style.display = 'none'
-      }
-
       galleryGrid.appendChild(card)
     }
 
@@ -282,16 +276,30 @@ export class HomeScreen extends View {
 
   private async handleLibrary(): Promise<void> {
     try {
-      const file = await pickImageFromLibrary()
+      const files = await pickImagesFromLibrary()
+      const [file, ...queuedFiles] = files
+      if (!file) throw new Error('No file selected')
+
       const bitmap = await decodeAndDownscale(file)
-      const suggestedTitle = file.name.replace(/\.\w+$/, '') || 'My Photo'
-      ImportStaging.set({ bitmap, imageBlob: file, suggestedTitle, origin: 'library' })
+      const suggestedTitle = this.suggestedTitleForFile(file)
+      ImportStaging.set(
+        { bitmap, imageBlob: file, suggestedTitle, origin: 'library' },
+        queuedFiles.map(queued => ({
+          imageBlob: queued,
+          suggestedTitle: this.suggestedTitleForFile(queued),
+          origin: 'library' as const,
+        }))
+      )
       this.router.navigate('#/difficulty/import')
     } catch (err) {
       if (err instanceof Error && err.message !== 'No file selected') {
         this.showToast(err.message)
       }
     }
+  }
+
+  private suggestedTitleForFile(file: File): string {
+    return file.name.replace(/\.\w+$/, '') || 'My Photo'
   }
 
   private async handleCamera(): Promise<void> {

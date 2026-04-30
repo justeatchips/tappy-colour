@@ -3,6 +3,7 @@ import type { RGBA8 } from './types'
 import { quantise } from './KMeansQuantiser'
 import { PixelGrid } from './PixelGrid'
 import { findAutoFillCells } from './autoFill'
+import { drawImageFit } from '../util/thumbnail'
 
 const useOffscreenCanvas = typeof OffscreenCanvas !== 'undefined'
 
@@ -28,10 +29,6 @@ export async function convertFromBitmap(
   bitmap: ImageBitmap,
   settings: ConversionSettings
 ): Promise<ConversionOutput> {
-  const side = Math.min(bitmap.width, bitmap.height)
-  const sx = (bitmap.width - side) / 2
-  const sy = (bitmap.height - side) / 2
-
   let canvas: HTMLCanvasElement | OffscreenCanvas
 
   if (useOffscreenCanvas) {
@@ -43,7 +40,9 @@ export async function convertFromBitmap(
   }
 
   const ctx = canvas.getContext('2d')!
-  ctx.drawImage(bitmap, sx, sy, side, side, 0, 0, settings.gridSize, settings.gridSize)
+  ctx.fillStyle = '#fff'
+  ctx.fillRect(0, 0, settings.gridSize, settings.gridSize)
+  drawImageFit(ctx, bitmap, 0, 0, settings.gridSize, settings.gridSize, settings.imageFit ?? 'cover')
 
   const imageData = ctx.getImageData(0, 0, settings.gridSize, settings.gridSize)
   const { centroids, assignments } = quantise(imageData.data, settings.paletteSize)

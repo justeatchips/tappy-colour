@@ -7,12 +7,13 @@ export interface GalleryCardOptions {
   /** URL string for bundled images, or null to derive from thumbnailBlob */
   imageSrc: string | null
   onOpen: () => void
-  onDelete: () => void
+  onDelete?: () => void
+  showDelete?: boolean
   objectUrls: { create(b: Blob | MediaSource): string }
 }
 
 export function createGalleryCard(opts: GalleryCardOptions): HTMLElement {
-  const { artwork, imageSrc, onDelete } = opts
+  const { artwork, imageSrc, onDelete, showDelete = false } = opts
 
   const card = document.createElement('button')
   card.style.cssText = `
@@ -97,36 +98,38 @@ export function createGalleryCard(opts: GalleryCardOptions): HTMLElement {
   }
 
   // Delete button — top-left
-  const deleteBtn = document.createElement('button')
-  deleteBtn.textContent = '🗑'
-  deleteBtn.setAttribute('aria-label', 'Delete')
-  deleteBtn.style.cssText = `
-    position: absolute;
-    top: 6px;
-    left: 6px;
-    width: 44px;
-    height: 44px;
-    min-width: 44px;
-    min-height: 44px;
-    background: var(--tc-ink-black);
-    color: white;
-    border: 2px solid var(--tc-ink-black);
-    border-radius: 4px;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 2;
-    padding: 0;
-    transition: background 80ms steps(2);
-  `
-  deleteBtn.addEventListener('mouseover', () => { deleteBtn.style.background = 'var(--tc-primary)' })
-  deleteBtn.addEventListener('mouseout', () => { deleteBtn.style.background = 'var(--tc-ink-black)' })
-  deleteBtn.addEventListener('click', (e) => { e.stopPropagation(); onDelete() })
-  deleteBtn.style.touchAction = 'manipulation'
-  addTouchTapListener(deleteBtn, (e) => { e.stopPropagation(); onDelete() })
-  imageContainer.appendChild(deleteBtn)
+  if (showDelete && onDelete) {
+    const deleteBtn = document.createElement('button')
+    deleteBtn.textContent = '🗑'
+    deleteBtn.setAttribute('aria-label', 'Delete')
+    deleteBtn.style.cssText = `
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      width: 44px;
+      height: 44px;
+      min-width: 44px;
+      min-height: 44px;
+      background: var(--tc-ink-black);
+      color: white;
+      border: 2px solid var(--tc-ink-black);
+      border-radius: 4px;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 2;
+      padding: 0;
+      transition: background 80ms steps(2);
+    `
+    deleteBtn.addEventListener('mouseover', () => { deleteBtn.style.background = 'var(--tc-primary)' })
+    deleteBtn.addEventListener('mouseout', () => { deleteBtn.style.background = 'var(--tc-ink-black)' })
+    deleteBtn.addEventListener('click', (e) => { e.stopPropagation(); onDelete() })
+    deleteBtn.style.touchAction = 'manipulation'
+    addTouchTapListener(deleteBtn, (e) => { e.stopPropagation(); onDelete() })
+    imageContainer.appendChild(deleteBtn)
+  }
 
   card.appendChild(imageContainer)
 

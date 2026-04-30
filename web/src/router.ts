@@ -18,6 +18,10 @@ export class Router {
   }
 
   navigate(hash: string): void {
+    if (window.location.hash === hash) {
+      void this.route()
+      return
+    }
     window.location.hash = hash
   }
 

@@ -61,6 +61,17 @@ describe('PaletteStrip selection targets', () => {
     expect(unselected?.getAttribute('aria-current')).toBeNull()
   })
 
+  it('renders palette entries as native buttons for keyboard and assistive controls', () => {
+    const strip = new PaletteStrip(makeSession())
+    strip.mount()
+
+    const entry = strip.element.querySelector<HTMLButtonElement>('[data-palette-entry="2"]')
+
+    expect(entry).toBeInstanceOf(HTMLButtonElement)
+    expect(entry?.type).toBe('button')
+    expect(entry?.getAttribute('aria-label')).toBe('Colour 3')
+  })
+
   it('scrolls the selected palette entry into view', () => {
     const strip = new PaletteStrip(makeSession())
     strip.mount()

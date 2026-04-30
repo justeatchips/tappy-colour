@@ -2,6 +2,117 @@
 
 Source: project code review on 2026-04-25.
 
+## New backlog items from 2026-04-30
+
+Source: user request plus PRD-aligned project review on 2026-04-30.
+
+## P1
+
+### Imported thumbnails should preserve photo aspect ratio
+
+- Status: Done
+- Source: User request
+- Area: `web/src/util/thumbnail.ts`, `web/src/views/GalleryCard.ts`, `web/src/views/SearchScreen.ts`, thumbnail regression tests
+- Issue: `makeThumbnail()` draws any source bitmap directly into a square canvas, which stretches portrait and landscape photos.
+- Issue: Gallery and selection thumbnails should feel like real photos, not distorted previews.
+- Outcome: Thumbnails use aspect-aware rendering, likely centered cover-crop with no distortion, or contain-fit with a kid-friendly background if cropping would hide too much.
+- Outcome: Add wide and tall image regression coverage so saved/imported/gallery thumbnails cannot skew again.
+- Completed: Thumbnail drawing now uses aspect-aware cover/contain rendering, imported thumbnails respect the chosen FILL/FIT framing, and draw math is covered for wide images.
+
+### Unlimited local galleries need storage-pressure handling
+
+- Status: Done
+- Source: User request and PRD review
+- Area: `web/src/model/ArtworkStore.ts`, `web/src/views/DifficultyPicker.ts`, `web/src/model/PaintingSession.ts`, storage/error UX
+- Issue: The product should not impose an arbitrary number of saved photos, but each imported puzzle now stores puzzle data, a thumbnail, and an offline source-image blob.
+- Issue: Several save paths swallow IndexedDB/local storage failures, which could make a large offline gallery fail silently.
+- Outcome: Do not cap the number of photos in app logic; instead surface quota/storage errors clearly, preserve the in-memory puzzle when possible, and offer a parent-managed cleanup path.
+- Outcome: Consider `navigator.storage.estimate()` for friendly "device storage is nearly full" messaging without adding telemetry.
+- Completed: Local import has no app-level count cap, storage/save failures now dispatch user-visible storage messaging, conversion save errors show a clear storage prompt, and Settings has a parent-managed cleanup path.
+
+## P2
+
+### Move artwork deletion into a settings/manage mode
+
+- Status: Done
+- Source: User request
+- Area: `web/src/views/HomeScreen.ts`, `web/src/views/GalleryCard.ts`, `web/src/views/SettingsScreen.ts`, delete/manage tests
+- Issue: Every saved gallery card currently exposes a 44px delete button on the image, which is easy for children to hit and visually competes with the main tap-to-open action.
+- Issue: The PRD requires careful delete confirmation, and the requested Apple Photos-like model keeps destructive controls out of the normal child flow.
+- Outcome: Gallery cards do not show delete controls by default.
+- Outcome: Settings exposes a parent-gated "Manage pictures" or "Select pictures" mode where one or more saved artworks can be selected and deleted with the existing two-step confirmation.
+- Completed: Gallery cards hide delete controls by default, and Settings now includes a parent-gated picture manager with multi-select deletion behind two confirmations.
+
+### Support multi-photo library import without an arbitrary app cap
+
+- Status: Done
+- Source: User request
+- Area: `web/src/util/imageImport.ts`, `web/src/views/HomeScreen.ts`, `web/src/views/DifficultyPicker.ts`, import queue UX
+- Issue: `pickImageFromLibrary()` currently resolves only `input.files?.[0]`, so photo-library import is strictly one image at a time.
+- Issue: M2 is about local sources and a saved gallery, so adding many family photos should feel natural and should not be limited by a hard-coded count.
+- Outcome: Photo library import can accept multiple images and queue them for conversion, while still letting each image get a suitable difficulty/preview flow.
+- Outcome: Any limit comes from browser/device storage and is communicated through the storage-pressure handling item, not through an app-level maximum count.
+- Completed: Library import accepts multiple files, queues each selected photo, and advances through the existing difficulty/conversion flow one image at a time.
+
+### Expose stored attribution for search-sourced puzzles
+
+- Status: Done
+- Source: PRD review
+- Area: `web/src/model/Artwork.ts`, `web/src/views/PuzzleContainer.ts`, completed/details UI, search attribution tests
+- Issue: Search imports persist attribution metadata, but the saved puzzle UI does not give parents a way to view the title, creator, license, or source URL later.
+- Issue: The PRD requires storing attribution and using internet sourcing in a narrow, parent-trust-friendly way.
+- Outcome: Search-sourced puzzles expose a small parent-readable credits/details view without distracting from the child painting loop.
+- Completed: Search-sourced puzzles now show a CREDIT control that opens stored title, creator, license, and source details.
+
+## P3
+
+### Completed puzzle image/painting toggle is already shipped
+
+- Status: Done
+- Source: User request verification
+- Area: `web/src/views/PuzzleContainer.ts`, `web/test/views/PuzzleContainer.sourceToggle.test.ts`
+- Issue: Requested behavior: once complete, the user should be able to toggle between the original image and the completed painting.
+- Completed: Completed puzzles already show a PHOTO/PAINT toggle when a source image is available, and regression coverage exists.
+
+### Add crop/fit control before conversion
+
+- Status: Done
+- Source: PRD review
+- Area: `web/src/views/DifficultyPicker.ts`, `web/src/engine/ImageConverter.ts`, conversion preview tests
+- Issue: The conversion pipeline currently samples a centered square from the source image. This avoids skew, but can crop important subjects such as faces, pets, or drawings near an edge.
+- Issue: The PRD's "wow" moment depends on the finished puzzle clearly resembling the original photo.
+- Outcome: Before conversion, show a simple square crop/fit preview with safe defaults and an option to reposition or choose contain-fit when center crop would lose the subject.
+- Completed: Difficulty preview now exposes FILL/FIT framing controls, and conversion/thumbnails persist the selected cover-or-contain framing.
+
+### First-run coach marks can miss the palette
+
+- Status: Done
+- Source: PRD review
+- Area: `web/src/views/OnboardingCoach.ts`, `web/src/views/PaletteStrip.ts`, onboarding tests
+- Issue: `OnboardingCoach` looks for a `button` inside the palette strip, but palette entries are currently `div` elements.
+- Issue: This can cause the first-run coach to finish immediately instead of teaching the child to pick a colour and tap a square.
+- Outcome: Coach marks target stable palette selectors and include regression coverage for the first-run path.
+- Completed: First-run coach marks now target the stable `data-palette-entry` selector.
+
+### Wrong-number taps should give gentle feedback
+
+- Status: Done
+- Source: PRD review
+- Area: `web/src/model/PaintingSession.ts`, `web/src/views/GridCanvas.ts`, sound/reduced-motion behavior
+- Issue: The PRD says wrong-number taps are gently rejected with a small shake animation, but the current session logic silently ignores them.
+- Outcome: Wrong taps provide a quick, non-punishing visual cue that respects reduced-motion and does not change puzzle state.
+- Completed: Wrong-number tap/bucket attempts now emit a non-painting rejection event, and the canvas shows a short reduced-motion-aware red flash on the rejected cell.
+
+### Palette entries need keyboard and assistive-control semantics
+
+- Status: Done
+- Source: PRD accessibility review
+- Area: `web/src/views/PaletteStrip.ts`, `web/src/views/ToolbarStrip.ts`, accessibility tests
+- Issue: Palette entries are clickable `div`s with touch/mouse handlers, but no button role, tab stop, or keyboard activation.
+- Issue: The PRD backlog calls out broader accessibility support, and even basic keyboard semantics make the web PWA easier to test and use with assistive controls.
+- Outcome: Palette entries use native buttons or equivalent ARIA/keyboard behavior while preserving 44pt touch targets and horizontal scrolling.
+- Completed: Palette entries are now native `button` elements with labels, preserving the existing touch behavior and selected state.
+
 ## New review items from 2026-04-28
 
 ## P1

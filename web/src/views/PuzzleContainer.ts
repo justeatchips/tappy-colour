@@ -129,6 +129,24 @@ export class PuzzleContainer extends View {
     `
     undoBtn.addEventListener('click', () => session.undo())
 
+    const attributionBtn = document.createElement('button')
+    attributionBtn.textContent = 'CREDIT'
+    attributionBtn.setAttribute('data-attribution-toggle', 'true')
+    attributionBtn.style.cssText = `
+      min-height: 44px;
+      padding: 8px 14px;
+      background: #f3f4f6;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 14px;
+      display: ${artwork.source.kind === 'search' ? 'inline-flex' : 'none'};
+      align-items: center;
+      justify-content: center;
+    `
+    attributionBtn.addEventListener('click', () => this.showAttributionDetails(artwork))
+
     const printBtn = document.createElement('button')
     printBtn.textContent = 'PRINT'
     printBtn.setAttribute('data-print-sheet', 'true')
@@ -175,6 +193,7 @@ export class PuzzleContainer extends View {
     toolbar.appendChild(titleEl)
     toolbar.appendChild(resetZoomBtn)
     toolbar.appendChild(undoBtn)
+    toolbar.appendChild(attributionBtn)
     toolbar.appendChild(printBtn)
     toolbar.appendChild(sourceToggleBtn)
 
@@ -314,6 +333,80 @@ export class PuzzleContainer extends View {
     if (this.sourceImageEl) {
       this.sourceImageEl.style.display = canToggle && this.showingSourceImage ? 'block' : 'none'
     }
+  }
+
+  private showAttributionDetails(artwork: Artwork): void {
+    if (artwork.source.kind !== 'search') return
+
+    const attribution = artwork.source.attribution
+    const overlay = document.createElement('div')
+    overlay.setAttribute('data-attribution-details', 'true')
+    overlay.style.cssText = `
+      position: fixed;
+      inset: 0;
+      z-index: 1200;
+      background: rgba(20,30,50,0.72);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    `
+
+    const panel = document.createElement('div')
+    panel.style.cssText = `
+      width: min(420px, 100%);
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      color: #1f2937;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    `
+
+    const title = document.createElement('h2')
+    title.textContent = 'Picture Credit'
+    title.style.cssText = 'margin: 0; font-size: 20px;'
+    panel.appendChild(title)
+
+    const rows: Array<[string, string]> = [
+      ['Title', attribution.title || artwork.title],
+      ['Creator', attribution.creator || 'Unknown'],
+      ['License', attribution.license || 'Unknown'],
+      ['Source', attribution.sourceUrl],
+    ]
+
+    for (const [label, value] of rows) {
+      const row = document.createElement('p')
+      row.style.cssText = 'margin: 0; font-size: 14px; line-height: 1.4;'
+      const strong = document.createElement('strong')
+      strong.textContent = `${label}: `
+      row.appendChild(strong)
+      row.append(value || 'Unknown')
+      panel.appendChild(row)
+    }
+
+    const close = document.createElement('button')
+    close.textContent = 'CLOSE'
+    close.style.cssText = `
+      margin-top: 8px;
+      min-height: 44px;
+      padding: 8px 14px;
+      background: #f3f4f6;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700;
+      text-align: center;
+    `
+    close.addEventListener('click', () => overlay.remove())
+    panel.appendChild(close)
+
+    overlay.addEventListener('click', (event) => {
+      if (event.target === overlay) overlay.remove()
+    })
+    overlay.appendChild(panel)
+    document.body.appendChild(overlay)
   }
 
   unmount(): void {

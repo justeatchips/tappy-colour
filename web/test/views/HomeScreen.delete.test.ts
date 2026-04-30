@@ -37,16 +37,6 @@ function makeRouter(): Router {
   return { navigate: vi.fn() } as unknown as Router
 }
 
-async function clickDialogDelete(): Promise<void> {
-  const button = await vi.waitFor(() => {
-    const found = [...document.body.querySelectorAll('button')]
-      .find(candidate => candidate.textContent === 'Delete')
-    expect(found).toBeInstanceOf(HTMLButtonElement)
-    return found as HTMLButtonElement
-  })
-  button.click()
-}
-
 beforeEach(() => {
   document.body.innerHTML = ''
   vi.restoreAllMocks()
@@ -61,29 +51,20 @@ beforeEach(() => {
   })
 })
 
-describe('HomeScreen delete confirmation', () => {
-  it('requires two confirmations before deleting an artwork', async () => {
+describe('HomeScreen destructive controls', () => {
+  it('does not show per-card delete buttons in the child gallery', async () => {
     const root = document.createElement('div')
     const artwork = makeArtwork()
     const store = makeStore([artwork])
     const screen = new HomeScreen(makeRouter(), store)
 
     screen.mount(root)
-    const deleteButton = await vi.waitFor(() => {
-      const found = root.querySelector<HTMLButtonElement>('button[aria-label="Delete"]')
-      expect(found).toBeInstanceOf(HTMLButtonElement)
-      return found
+
+    await vi.waitFor(() => {
+      expect(root.querySelector('#home-gallery-loading')).toBeNull()
     })
 
-    deleteButton!.click()
+    expect(root.querySelector<HTMLButtonElement>('button[aria-label="Delete"]')).toBeNull()
     expect(store.delete).not.toHaveBeenCalled()
-    expect(document.body.textContent).toContain('Delete "Test artwork"?')
-
-    await clickDialogDelete()
-    await vi.waitFor(() => expect(document.body.textContent).toContain('Delete "Test artwork" forever?'))
-    expect(store.delete).not.toHaveBeenCalled()
-
-    await clickDialogDelete()
-    await vi.waitFor(() => expect(store.delete).toHaveBeenCalledWith('artwork-1'))
   })
 })

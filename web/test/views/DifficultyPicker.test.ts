@@ -67,6 +67,26 @@ describe('DifficultyPicker defaults', () => {
     expect(root.querySelector('#diff-stat-grid')?.textContent).toBe('16\u00d716')
   })
 
+  it('offers fill and fit image framing options for conversion previews', () => {
+    const root = document.createElement('div')
+    document.body.appendChild(root)
+    const screen = new DifficultyPicker(makeRouter(), makeStore(), 'starter', null)
+
+    screen.mount(root)
+
+    const cover = root.querySelector<HTMLButtonElement>('[data-image-fit="cover"]')
+    const contain = root.querySelector<HTMLButtonElement>('[data-image-fit="contain"]')
+
+    expect(cover).toBeInstanceOf(HTMLButtonElement)
+    expect(contain).toBeInstanceOf(HTMLButtonElement)
+    expect(cover?.getAttribute('aria-pressed')).toBe('true')
+
+    contain!.click()
+
+    expect(cover?.getAttribute('aria-pressed')).toBe('false')
+    expect(contain?.getAttribute('aria-pressed')).toBe('true')
+  })
+
   it('uses responsive layout hooks for narrow difficulty screens', () => {
     const root = document.createElement('div')
     document.body.appendChild(root)

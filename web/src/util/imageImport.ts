@@ -6,7 +6,16 @@ const MAX_MEGAPIXELS = 24 * 1024 * 1024 // 24 MP
  * Rejects if the user cancels or picks a non-image file.
  */
 export function pickImageFromLibrary(): Promise<File> {
-  return pickFile(false)
+  return pickImagesFromLibrary().then(files => files[0])
+}
+
+/**
+ * Open a file picker restricted to images and resolve with every chosen File.
+ * The browser may impose its own picker/storage constraints, but the app does
+ * not add an arbitrary count limit.
+ */
+export function pickImagesFromLibrary(): Promise<File[]> {
+  return pickFiles({ camera: false, multiple: true })
 }
 
 /**
@@ -14,27 +23,29 @@ export function pickImageFromLibrary(): Promise<File> {
  * Resolves with the captured File.
  */
 export function captureImageFromCamera(): Promise<File> {
-  return pickFile(true)
+  return pickFiles({ camera: true, multiple: false }).then(files => files[0])
 }
 
-function pickFile(camera: boolean): Promise<File> {
+function pickFiles(opts: { camera: boolean; multiple: boolean }): Promise<File[]> {
   return new Promise((resolve, reject) => {
     const input = document.createElement('input')
     input.type = 'file'
     input.accept = 'image/*'
-    if (camera) input.setAttribute('capture', 'environment')
+    input.multiple = opts.multiple
+    if (opts.camera) input.setAttribute('capture', 'environment')
 
     let resolved = false
 
     input.addEventListener('change', () => {
-      const file = input.files?.[0]
-      if (!file) {
+      const files = [...(input.files ?? [])]
+      const nonImage = files.find(file => !file.type.startsWith('image/'))
+      if (files.length === 0) {
         reject(new Error('No file selected'))
-      } else if (!file.type.startsWith('image/')) {
+      } else if (nonImage) {
         reject(new Error('Selected file is not an image'))
       } else {
         resolved = true
-        resolve(file)
+        resolve(files)
       }
     })
 

@@ -105,6 +105,19 @@ describe('PaintingSession — tool modes', () => {
     const saved = vi.mocked(store.save).mock.calls[0][0]
     expect(saved.sourceImageBlob).toBe(sourceImageBlob)
   })
+
+  it('emits wrongCell without painting when a wrong number is tapped', () => {
+    const session = new PaintingSession(makeArtwork([0, 1], 2, 1), fakeStore())
+    const events: string[] = []
+    session.on('change', (t) => events.push(t))
+
+    session.tap(1, 0)
+
+    expect(events).toContain('wrongCell')
+    expect(events).not.toContain('gridChanged')
+    expect(session.lastRejectedCell).toEqual({ col: 1, row: 0 })
+    expect(session.grid.cell(1, 0).painted).toBe(false)
+  })
 })
 
 describe('PaintingSession — bucketFill', () => {

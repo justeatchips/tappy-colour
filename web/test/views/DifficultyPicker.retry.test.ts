@@ -2,6 +2,7 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ConversionOutput } from '../../src/engine/ImageConverter'
+import { ImportStaging } from '../../src/model/ImportStaging'
 import type { ArtworkStore } from '../../src/model/ArtworkStore'
 import type { StagedImage } from '../../src/model/ImportStaging'
 import { UserSettings } from '../../src/model/UserSettings'
@@ -11,11 +12,13 @@ import { DifficultyPicker } from '../../src/views/DifficultyPicker'
 const {
   convertFromBitmapInWorkerMock,
   decodeAndDownscaleMock,
+  drawImageFitMock,
   makeSourceImageBlobMock,
   makeThumbnailMock,
 } = vi.hoisted(() => ({
   convertFromBitmapInWorkerMock: vi.fn(),
   decodeAndDownscaleMock: vi.fn(),
+  drawImageFitMock: vi.fn(),
   makeSourceImageBlobMock: vi.fn(),
   makeThumbnailMock: vi.fn(),
 }))
@@ -25,6 +28,7 @@ vi.mock('../../src/util/imageImport', () => ({
 }))
 
 vi.mock('../../src/util/thumbnail', () => ({
+  drawImageFit: drawImageFitMock,
   makeSourceImageBlob: makeSourceImageBlobMock,
   makeThumbnail: makeThumbnailMock,
 }))
@@ -78,6 +82,8 @@ beforeEach(() => {
     mascotId: 'rosie',
     pin: null,
   })
+  ImportStaging.take()
+  ImportStaging.clearQueue()
 
   vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
     clearRect: vi.fn(),
@@ -135,5 +141,43 @@ describe('DifficultyPicker imported image retry', () => {
     expect(store.saveImmediate).toHaveBeenCalledTimes(1)
     expect(router.navigate).toHaveBeenCalledWith(expect.stringMatching(/^#\/puzzle\//))
     expect(previewBitmap.close).toHaveBeenCalledTimes(1)
+  })
+
+  it('stages the next queued library image after saving the current import', async () => {
+    const previewBitmap = makeBitmap()
+    const conversionBitmap = makeBitmap()
+    const queuedBitmap = makeBitmap()
+    const staged: StagedImage = {
+      bitmap: previewBitmap,
+      imageBlob: new Blob(['first image'], { type: 'image/jpeg' }),
+      suggestedTitle: 'First Photo',
+      origin: 'library',
+    }
+    ImportStaging.enqueue([
+      {
+        imageBlob: new Blob(['second image'], { type: 'image/jpeg' }),
+        suggestedTitle: 'Second Photo',
+        origin: 'library',
+      },
+    ])
+    const store = makeStore()
+    const router = makeRouter()
+    const screen = new DifficultyPicker(router, store, null, staged)
+    const root = document.createElement('div')
+
+    decodeAndDownscaleMock
+      .mockResolvedValueOnce(conversionBitmap)
+      .mockResolvedValueOnce(queuedBitmap)
+    convertFromBitmapInWorkerMock.mockResolvedValueOnce(makeOutput())
+
+    screen.mount(root)
+    root.querySelector<HTMLButtonElement>('#diff-start-btn')!.click()
+    await flushAsync()
+
+    expect(store.saveImmediate).toHaveBeenCalledTimes(1)
+    expect(router.navigate).toHaveBeenCalledWith('#/difficulty/import')
+    const next = ImportStaging.take()
+    expect(next?.suggestedTitle).toBe('Second Photo')
+    expect(next?.bitmap).toBe(queuedBitmap)
   })
 })

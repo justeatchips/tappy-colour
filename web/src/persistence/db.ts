@@ -14,6 +14,7 @@ export interface ArtworkRecord {
   isComplete: boolean
   sliderValue: number
   autoFillEnabled?: boolean | null
+  imageFit?: 'cover' | 'contain' | null
   gridColumns: number
   gridRows: number
   paletteJson: string // JSON.stringify(PaletteColour[])

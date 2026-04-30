@@ -18,6 +18,7 @@ export type PaintEventType =
   | 'toolChanged'
   | 'colourCompleted'
   | 'hintRequested'
+  | 'wrongCell'
 
 export class PaintingSession extends EventEmitter<{ change: PaintEventType }> {
   readonly artworkID: string
@@ -28,6 +29,7 @@ export class PaintingSession extends EventEmitter<{ change: PaintEventType }> {
   numbersVisible = true
   currentTool: PaintTool = 'tap'
   lastCompletedPaletteIndex: number | null = null
+  lastRejectedCell: CellCoord | null = null
 
   private undoStack: CellCoord[][] = [] // max 1 entry
   private currentDragPainted = new Set<number>() // cellKey values
@@ -105,6 +107,7 @@ export class PaintingSession extends EventEmitter<{ change: PaintEventType }> {
     const cell = this.grid.cell(col, row)
 
     if (cell.paletteIndex !== this.selectedPaletteIndex || cell.painted) {
+      if (!cell.painted) this.rejectCell(col, row)
       return
     }
 
@@ -131,6 +134,11 @@ export class PaintingSession extends EventEmitter<{ change: PaintEventType }> {
     this.emit('change', 'hintRequested')
   }
 
+  private rejectCell(col: number, row: number): void {
+    this.lastRejectedCell = { col, row }
+    this.emit('change', 'wrongCell')
+  }
+
   /**
    * Switch the selected palette colour and persist the resumed state.
    */
@@ -146,7 +154,10 @@ export class PaintingSession extends EventEmitter<{ change: PaintEventType }> {
    */
   bucketFill(col: number, row: number): void {
     const cell = this.grid.cell(col, row)
-    if (cell.paletteIndex !== this.selectedPaletteIndex || cell.painted) return
+    if (cell.paletteIndex !== this.selectedPaletteIndex || cell.painted) {
+      if (!cell.painted) this.rejectCell(col, row)
+      return
+    }
 
     const coords = floodFillRegion(this.grid, col, row)
     if (coords.length === 0) return

@@ -56,7 +56,9 @@ export class OnboardingCoach {
 
     this.overlay.innerHTML = ''
 
-    const targetEl = step === 0 ? opts.paletteEl.querySelector('button') as HTMLElement | null : opts.gridEl
+    const targetEl = step === 0
+      ? opts.paletteEl.querySelector('[data-palette-entry]') as HTMLElement | null
+      : opts.gridEl
     if (!targetEl) { this.finish(); return }
 
     const rect = targetEl.getBoundingClientRect()

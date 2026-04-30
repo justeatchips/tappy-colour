@@ -31,17 +31,24 @@ function dispatchTouch(target: EventTarget, type: string, clientX: number, clien
   return event
 }
 
-function makeCard(onOpen = vi.fn(), onDelete = vi.fn()): HTMLElement {
+function makeCard(onOpen = vi.fn(), onDelete = vi.fn(), showDelete = false): HTMLElement {
   return createGalleryCard({
     artwork: makeArtwork(),
     imageSrc: null,
     onOpen,
     onDelete,
+    showDelete,
     objectUrls: { create: () => 'blob:test' },
   })
 }
 
 describe('GalleryCard touch activation', () => {
+  it('does not show destructive controls by default', () => {
+    const card = makeCard()
+
+    expect(card.querySelector('button[aria-label="Delete"]')).toBeNull()
+  })
+
   it('opens on a touch tap inside the movement threshold', () => {
     const onOpen = vi.fn()
     const card = makeCard(onOpen)
@@ -80,7 +87,7 @@ describe('GalleryCard touch activation', () => {
   it('does not delete or open when scrolling starts on the delete button', () => {
     const onOpen = vi.fn()
     const onDelete = vi.fn()
-    const card = makeCard(onOpen, onDelete)
+    const card = makeCard(onOpen, onDelete, true)
     const deleteButton = card.querySelector('button[aria-label="Delete"]')
 
     expect(deleteButton).toBeInstanceOf(HTMLButtonElement)

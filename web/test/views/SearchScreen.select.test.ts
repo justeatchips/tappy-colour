@@ -72,6 +72,7 @@ beforeEach(() => {
   document.body.innerHTML = ''
   vi.restoreAllMocks()
   ImportStaging.take()
+  ImportStaging.clearQueue()
   decodeAndDownscaleMock.mockResolvedValue(makeBitmap())
 })
 

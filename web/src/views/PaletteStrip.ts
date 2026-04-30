@@ -75,8 +75,10 @@ export class PaletteStrip {
     `
 
     for (let i = 0; i < palette.colours.length; i++) {
-      const entry = document.createElement('div')
+      const entry = document.createElement('button')
+      entry.type = 'button'
       entry.dataset.paletteEntry = String(i)
+      entry.setAttribute('aria-label', `Colour ${i + 1}`)
       entry.style.cssText = `
         display: flex;
         flex-direction: column;
@@ -88,6 +90,7 @@ export class PaletteStrip {
         border: 3px solid transparent;
         box-sizing: border-box;
         transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+        font-family: inherit;
       `
 
       entry.addEventListener('mouseover', () => {

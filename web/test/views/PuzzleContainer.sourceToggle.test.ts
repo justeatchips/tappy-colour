@@ -44,6 +44,24 @@ function makeArtwork(complete: boolean): Artwork {
   }
 }
 
+function makeSearchArtwork(): Artwork {
+  return {
+    ...makeArtwork(true),
+    source: {
+      kind: 'search',
+      capturedAt: 1000,
+      attribution: {
+        title: 'Orange Cat',
+        creator: 'Kid Safe Photos',
+        creatorUrl: 'https://creator.example.test',
+        license: 'CC0',
+        licenseUrl: 'https://license.example.test',
+        sourceUrl: 'https://source.example.test/cat',
+      },
+    },
+  }
+}
+
 function makeStore(artwork: Artwork): ArtworkStore {
   return {
     get: vi.fn().mockResolvedValue(artwork),
@@ -128,6 +146,34 @@ describe('PuzzleContainer source image toggle', () => {
     expect(print.style.display).toBe('inline-flex')
     expect(toggle.style.display).toBe('none')
     expect(sourceImage.style.display).toBe('none')
+
+    view.unmount()
+  })
+
+  it('shows stored attribution for search-sourced puzzles', async () => {
+    const root = document.createElement('div')
+    const view = new PuzzleContainer(
+      { navigate: vi.fn() } as unknown as Router,
+      makeStore(makeSearchArtwork()),
+      'source-toggle'
+    )
+
+    view.mount(root)
+
+    const credit = await vi.waitFor(() => {
+      const found = root.querySelector<HTMLButtonElement>('[data-attribution-toggle]')
+      expect(found).toBeInstanceOf(HTMLButtonElement)
+      return found!
+    })
+
+    expect(credit.style.display).toBe('inline-flex')
+    credit.click()
+
+    const details = document.body.querySelector<HTMLElement>('[data-attribution-details]')
+    expect(details).toBeInstanceOf(HTMLElement)
+    expect(details?.textContent).toContain('Orange Cat')
+    expect(details?.textContent).toContain('Kid Safe Photos')
+    expect(details?.textContent).toContain('CC0')
 
     view.unmount()
   })

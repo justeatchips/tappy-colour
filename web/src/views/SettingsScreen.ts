@@ -1,5 +1,6 @@
 import type { Router } from '../router'
 import type { ArtworkStore } from '../model/ArtworkStore'
+import type { Artwork } from '../model/Artwork'
 import { View, configureScrollableRoot } from './BaseView'
 import { UserSettings } from '../model/UserSettings'
 import { showConfirmDialog } from './ConfirmDialog'
@@ -170,6 +171,10 @@ function showMathGate(mode: 'setup' | 'verify'): Promise<GateResult> {
 
 export class SettingsScreen extends View {
   private root: HTMLElement | null = null
+  private manageOpen = false
+  private manageLoading = false
+  private artworks: Artwork[] = []
+  private selectedArtworkIds = new Set<string>()
 
   constructor(private router: Router, private store: ArtworkStore) {
     super()
@@ -339,6 +344,28 @@ export class SettingsScreen extends View {
     })
     settingsGrid.appendChild(changePinBtn)
 
+    const manageBtn = document.createElement('button')
+    manageBtn.className = 'px-button px-button--ghost'
+    manageBtn.style.cssText = `
+      grid-column: 1 / -1;
+      width: 100%;
+    `
+    manageBtn.textContent = this.manageOpen ? 'HIDE PICTURE MANAGER' : 'SELECT PICTURES'
+    manageBtn.addEventListener('click', () => {
+      if (this.manageOpen) {
+        this.manageOpen = false
+        this.selectedArtworkIds.clear()
+        this.render()
+        return
+      }
+      void this.openPictureManager()
+    })
+    settingsGrid.appendChild(manageBtn)
+
+    if (this.manageOpen) {
+      settingsGrid.appendChild(this.makePictureManager())
+    }
+
     // Reset all
     const resetBtn = document.createElement('button')
     resetBtn.className = 'px-button'
@@ -391,6 +418,141 @@ export class SettingsScreen extends View {
     row.appendChild(text)
     row.appendChild(toggle)
     return row
+  }
+
+  private async openPictureManager(): Promise<void> {
+    this.manageOpen = true
+    this.manageLoading = true
+    this.selectedArtworkIds.clear()
+    this.render()
+
+    try {
+      this.artworks = await this.store.fetchAll()
+    } catch {
+      this.showToast('Could not load pictures.')
+      this.artworks = []
+    } finally {
+      this.manageLoading = false
+      this.render()
+    }
+  }
+
+  private makePictureManager(): HTMLElement {
+    const panel = document.createElement('div')
+    panel.className = 'px-panel'
+    panel.setAttribute('data-picture-manager', 'true')
+    panel.style.cssText = `
+      grid-column: 1 / -1;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    `
+
+    const title = document.createElement('div')
+    title.className = 'setting-row__title'
+    title.textContent = 'Picture Manager'
+    panel.appendChild(title)
+
+    if (this.manageLoading) {
+      const loading = document.createElement('div')
+      loading.className = 'setting-row__sub'
+      loading.textContent = 'Loading pictures...'
+      panel.appendChild(loading)
+      return panel
+    }
+
+    if (this.artworks.length === 0) {
+      const empty = document.createElement('div')
+      empty.className = 'setting-row__sub'
+      empty.textContent = 'No saved pictures yet.'
+      panel.appendChild(empty)
+      return panel
+    }
+
+    for (const artwork of this.artworks) {
+      const row = document.createElement('label')
+      row.style.cssText = `
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: 44px;
+        padding: 8px;
+        border: 2px solid rgba(31,46,74,0.14);
+        border-radius: 4px;
+        cursor: pointer;
+      `
+
+      const checkbox = document.createElement('input')
+      checkbox.type = 'checkbox'
+      checkbox.checked = this.selectedArtworkIds.has(artwork.id)
+      checkbox.setAttribute('data-manage-picture', artwork.id)
+      checkbox.style.cssText = `
+        width: 24px;
+        height: 24px;
+        flex: 0 0 24px;
+        accent-color: var(--tc-primary);
+      `
+      checkbox.addEventListener('change', () => {
+        if (checkbox.checked) this.selectedArtworkIds.add(artwork.id)
+        else this.selectedArtworkIds.delete(artwork.id)
+        this.render()
+      })
+
+      const text = document.createElement('span')
+      text.textContent = artwork.title
+      text.style.cssText = `
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-weight: 800;
+      `
+
+      row.appendChild(checkbox)
+      row.appendChild(text)
+      panel.appendChild(row)
+    }
+
+    const deleteSelected = document.createElement('button')
+    deleteSelected.className = 'px-button'
+    deleteSelected.setAttribute('data-delete-selected-pictures', 'true')
+    deleteSelected.disabled = this.selectedArtworkIds.size === 0
+    deleteSelected.style.cssText = `
+      width: 100%;
+      margin-top: 4px;
+      background: var(--tc-danger);
+      color: white;
+      border-color: var(--tc-ink-black);
+      opacity: ${deleteSelected.disabled ? '0.55' : '1'};
+      cursor: ${deleteSelected.disabled ? 'not-allowed' : 'pointer'};
+    `
+    deleteSelected.textContent = `DELETE SELECTED (${this.selectedArtworkIds.size})`
+    deleteSelected.addEventListener('click', () => { void this.handleDeleteSelected() })
+    panel.appendChild(deleteSelected)
+
+    return panel
+  }
+
+  private async handleDeleteSelected(): Promise<void> {
+    const ids = [...this.selectedArtworkIds]
+    if (ids.length === 0) return
+
+    const confirmed = await showConfirmDialog(`Delete ${ids.length} selected picture${ids.length === 1 ? '' : 's'}?`)
+    if (!confirmed) return
+    const confirmedAgain = await showConfirmDialog('Delete selected pictures forever?')
+    if (!confirmedAgain) return
+
+    try {
+      await Promise.all(ids.map(id => this.store.delete(id)))
+      this.selectedArtworkIds.clear()
+      this.artworks = await this.store.fetchAll()
+      this.showToast('Selected pictures deleted.')
+      this.render()
+    } catch {
+      this.showToast('Could not delete selected pictures.')
+    }
   }
 
   private async handleClearAll(): Promise<void> {

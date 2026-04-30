@@ -37,7 +37,10 @@ export class GridCanvas {
   private touchState: 'idle' | 'pendingPaint' | 'painting' | 'pinching' = 'idle'
   private pendingTimer: ReturnType<typeof setTimeout> | null = null
   private hintTimers: Array<ReturnType<typeof setTimeout>> = []
+  private wrongCellTimers: Array<ReturnType<typeof setTimeout>> = []
   private hintOpacity = 0
+  private wrongCellOpacity = 0
+  private wrongCell: CellCoord | null = null
   private paintStartCol = -1
   private paintStartRow = -1
   private lastTouchX = 0
@@ -107,13 +110,18 @@ export class GridCanvas {
         eventType === 'selectionChanged' ||
         eventType === 'completionChanged' ||
         eventType === 'numbersVisibilityChanged' ||
-        eventType === 'hintRequested'
+        eventType === 'hintRequested' ||
+        eventType === 'wrongCell'
       ) {
         if (eventType === 'numbersVisibilityChanged') {
           this.numbersCanvas.style.opacity = this.session.numbersVisible ? '1' : '0'
         }
         if (eventType === 'hintRequested') {
           this.startHint()
+          return
+        }
+        if (eventType === 'wrongCell') {
+          this.startWrongCellFeedback()
           return
         }
         this.render()
@@ -150,6 +158,7 @@ export class GridCanvas {
       this.pendingTimer = null
     }
     this.clearHintTimers()
+    this.clearWrongCellTimers()
 
     this.unsubs.forEach(unsub => unsub())
     this.unsubs = []
@@ -224,6 +233,14 @@ export class GridCanvas {
           this.ctx.fillStyle = this.hintCellFill()
           this.ctx.fillRect(x, y, effectiveCellSize, effectiveCellSize)
           this.ctx.strokeStyle = this.hintStroke()
+          this.ctx.lineWidth = Math.max(3, Math.min(6, effectiveCellSize * 0.12))
+          this.ctx.strokeRect(x + 1, y + 1, effectiveCellSize - 2, effectiveCellSize - 2)
+        }
+
+        if (showCellBoundaries && this.wrongCellOpacity > 0 && this.wrongCell?.col === col && this.wrongCell.row === row) {
+          this.ctx.fillStyle = `rgba(239, 68, 68, ${Math.round(this.wrongCellOpacity * 18) / 100})`
+          this.ctx.fillRect(x, y, effectiveCellSize, effectiveCellSize)
+          this.ctx.strokeStyle = `rgba(220, 38, 38, ${Math.round(this.wrongCellOpacity * 95) / 100})`
           this.ctx.lineWidth = Math.max(3, Math.min(6, effectiveCellSize * 0.12))
           this.ctx.strokeRect(x + 1, y + 1, effectiveCellSize - 2, effectiveCellSize - 2)
         }
@@ -305,6 +322,33 @@ export class GridCanvas {
   private clearHintTimers(): void {
     for (const timer of this.hintTimers) clearTimeout(timer)
     this.hintTimers = []
+  }
+
+  private startWrongCellFeedback(): void {
+    this.clearWrongCellTimers()
+    this.wrongCell = this.session.lastRejectedCell
+    if (!this.wrongCell) return
+    this.wrongCellOpacity = 1
+    this.render()
+
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
+    this.wrongCellTimers = [
+      setTimeout(() => {
+        this.wrongCellOpacity = reducedMotion ? 0 : 0.45
+        this.render()
+      }, reducedMotion ? 120 : 180),
+      setTimeout(() => {
+        this.wrongCellOpacity = 0
+        this.wrongCell = null
+        this.render()
+        this.clearWrongCellTimers()
+      }, reducedMotion ? 220 : 360),
+    ]
+  }
+
+  private clearWrongCellTimers(): void {
+    for (const timer of this.wrongCellTimers) clearTimeout(timer)
+    this.wrongCellTimers = []
   }
 
   private cellAt(clientX: number, clientY: number): CellCoord | null {

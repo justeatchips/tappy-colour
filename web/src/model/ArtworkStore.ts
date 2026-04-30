@@ -20,7 +20,7 @@ export class ArtworkStore extends EventEmitter<{ changed: Artwork[] }> {
     if (typeof window === 'undefined') return
 
     const flushAll = () => {
-      void this.flushPendingSaves()
+      void this.flushPendingSaves().catch(err => this.notifyStorageError(err))
     }
 
     window.addEventListener('visibilitychange', flushAll)
@@ -96,9 +96,7 @@ export class ArtworkStore extends EventEmitter<{ changed: Artwork[] }> {
 
       if (!pending) return
 
-      this.saveImmediate(pending).catch(() => {
-        // Silently fail on save error during debounced save
-      })
+      this.saveImmediate(pending).catch(err => this.notifyStorageError(err))
     }, 150)
 
     this.pendingSaves.set(artwork.id, artwork)
@@ -187,5 +185,17 @@ export class ArtworkStore extends EventEmitter<{ changed: Artwork[] }> {
     }
 
     this.emit('changed', this.cache)
+  }
+
+  private notifyStorageError(err: unknown): void {
+    if (typeof window === 'undefined') return
+    window.dispatchEvent(new CustomEvent('tappy-storage-error', {
+      detail: {
+        error: err,
+        message: err instanceof DOMException && err.name === 'QuotaExceededError'
+          ? 'Device storage is full. Delete some pictures in Settings, then try again.'
+          : 'Could not save your latest progress.',
+      },
+    }))
   }
 }

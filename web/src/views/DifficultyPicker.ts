@@ -1,6 +1,6 @@
 import type { Router } from '../router'
 import type { ArtworkStore } from '../model/ArtworkStore'
-import type { StagedImage } from '../model/ImportStaging'
+import { ImportStaging, type StagedImage } from '../model/ImportStaging'
 import { View, configureScrollableRoot } from './BaseView'
 import { makeConversionSettings } from '../engine/ConversionSettings'
 import { estimateCompletionMinutes, makeDifficultyPreviews, type DifficultyPreview } from '../engine/DifficultyPreview'
@@ -10,7 +10,7 @@ import { BUNDLED_IMAGES } from '../assets/bundled'
 import type { Artwork } from '../model/Artwork'
 import { generateId } from '../model/Artwork'
 import { ChickRow } from './ChickRow'
-import { makeSourceImageBlob, makeThumbnail } from '../util/thumbnail'
+import { drawImageFit, makeSourceImageBlob, makeThumbnail, type ImageFit } from '../util/thumbnail'
 import { ManagedObjectUrls } from '../util/objectUrl'
 import { UserSettings } from '../model/UserSettings'
 import { decodeAndDownscale } from '../util/imageImport'
@@ -23,6 +23,7 @@ export class DifficultyPicker extends View {
   private sliderInput: HTMLInputElement | null = null
   private previewCards: Array<{ sliderValue: number; element: HTMLElement }> = []
   private previewCanvases: Array<{ canvas: HTMLCanvasElement; gridSize: number }> = []
+  private imageFit: ImageFit = 'cover'
   private objectUrls = new ManagedObjectUrls()
 
   constructor(
@@ -49,7 +50,10 @@ export class DifficultyPicker extends View {
     backBtn.className = 'px-button px-button--ghost'
     backBtn.id = 'diff-back-btn'
     backBtn.textContent = '← BACK'
-    backBtn.addEventListener('click', () => this.router.navigate('#/'))
+    backBtn.addEventListener('click', () => {
+      ImportStaging.clearQueue()
+      this.router.navigate('#/')
+    })
     topBar.appendChild(backBtn)
 
     const topTitle = document.createElement('div')
@@ -167,6 +171,7 @@ export class DifficultyPicker extends View {
     // Initial stats
     const initialSettings = makeConversionSettings(this.sliderValue, {
       autoFillEnabled: UserSettings.get().autoFillEnabled,
+      imageFit: this.imageFit,
     })
     this.updateStatsDisplay(initialSettings)
     this.updatePreviewSelection()
@@ -187,6 +192,16 @@ export class DifficultyPicker extends View {
     title.textContent = 'PREVIEW'
     panel.appendChild(title)
 
+    const fitControls = document.createElement('div')
+    fitControls.style.cssText = `
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    `
+    fitControls.appendChild(this.makeFitButton('cover', 'FILL'))
+    fitControls.appendChild(this.makeFitButton('contain', 'FIT'))
+    panel.appendChild(fitControls)
+
     const previewGrid = document.createElement('div')
     previewGrid.className = 'difficulty-preview-grid'
 
@@ -195,7 +210,46 @@ export class DifficultyPicker extends View {
     }
 
     panel.appendChild(previewGrid)
+    this.updateFitButtons(panel)
     return panel
+  }
+
+  private makeFitButton(fit: ImageFit, label: string): HTMLButtonElement {
+    const button = document.createElement('button')
+    button.type = 'button'
+    button.setAttribute('data-image-fit', fit)
+    button.textContent = label
+    button.style.cssText = `
+      flex: 1;
+      min-height: 44px;
+      padding: 8px;
+      border: 3px solid var(--tc-ink-black);
+      border-radius: 4px;
+      font-family: var(--tc-font-display);
+      font-size: 12px;
+      cursor: pointer;
+      text-align: center;
+    `
+    button.addEventListener('click', () => this.setImageFit(fit))
+    return button
+  }
+
+  private setImageFit(fit: ImageFit): void {
+    if (this.imageFit === fit) return
+    this.imageFit = fit
+    this.updateFitButtons()
+    this.renderPreviewCanvases()
+  }
+
+  private updateFitButtons(root: ParentNode = this.root ?? document): void {
+    const buttons = root.querySelectorAll<HTMLButtonElement>('[data-image-fit]')
+    for (const button of buttons) {
+      const selected = button.dataset.imageFit === this.imageFit
+      button.setAttribute('aria-pressed', String(selected))
+      button.style.background = selected ? 'var(--tc-primary-soft)' : 'var(--tc-surface)'
+      button.style.boxShadow = selected ? '0 2px 0 0 var(--tc-ink-black)' : '0 4px 0 0 var(--tc-ink-black)'
+      button.style.transform = selected ? 'translateY(2px)' : 'translateY(0)'
+    }
   }
 
   private makePreviewCard(preview: DifficultyPreview): HTMLElement {
@@ -318,6 +372,7 @@ export class DifficultyPicker extends View {
 
     const settings = makeConversionSettings(this.sliderValue, {
       autoFillEnabled: UserSettings.get().autoFillEnabled,
+      imageFit: this.imageFit,
     })
     this.updateStatsDisplay(settings)
     this.chickRow?.update(this.sliderValue)
@@ -383,12 +438,6 @@ export class DifficultyPicker extends View {
     }
     if (!ctx) return
 
-    const width = 'naturalWidth' in source && source.naturalWidth ? source.naturalWidth : source.width
-    const height = 'naturalHeight' in source && source.naturalHeight ? source.naturalHeight : source.height
-    const side = Math.min(width, height)
-    const sx = (width - side) / 2
-    const sy = (height - side) / 2
-
     const sample = document.createElement('canvas')
     sample.width = gridSize
     sample.height = gridSize
@@ -400,7 +449,9 @@ export class DifficultyPicker extends View {
     }
     if (!sampleCtx) return
 
-    sampleCtx.drawImage(source, sx, sy, side, side, 0, 0, gridSize, gridSize)
+    sampleCtx.fillStyle = '#fff'
+    sampleCtx.fillRect(0, 0, gridSize, gridSize)
+    drawImageFit(sampleCtx, source, 0, 0, gridSize, gridSize, this.imageFit)
 
     ctx.imageSmoothingEnabled = false
     ctx.clearRect(0, 0, canvas.width, canvas.height)
@@ -425,6 +476,9 @@ export class DifficultyPicker extends View {
     this.sliderInput = null
     this.previewCards = []
     this.previewCanvases = []
+    if (this.staged && !ImportStaging.has()) {
+      ImportStaging.clearQueue()
+    }
     this.releaseStaged()
     if (this.root) {
       this.root.innerHTML = ''
@@ -446,6 +500,7 @@ export class DifficultyPicker extends View {
     try {
       const settings = makeConversionSettings(this.sliderValue, {
         autoFillEnabled: UserSettings.get().autoFillEnabled,
+        imageFit: this.imageFit,
       })
       let output: Awaited<ReturnType<typeof convert>>
       let thumbnail: Blob | undefined
@@ -461,7 +516,7 @@ export class DifficultyPicker extends View {
         try {
           conversionBitmap = await decodeAndDownscale(stagedImage.imageBlob)
           ;[thumbnail, sourceImageBlob] = await Promise.all([
-            makeThumbnail(conversionBitmap),
+            makeThumbnail(conversionBitmap, undefined, this.imageFit),
             makeSourceImageBlob(conversionBitmap),
           ])
 
@@ -526,13 +581,60 @@ export class DifficultyPicker extends View {
 
       await this.store.saveImmediate(artwork)
       if (releaseStagedAfterSave) this.releaseStaged()
-      this.router.navigate(`#/puzzle/${artwork.id}`)
+      if (await this.stageNextQueuedImport()) {
+        this.router.navigate('#/difficulty/import')
+      } else {
+        this.router.navigate(`#/puzzle/${artwork.id}`)
+      }
     } catch (err) {
       console.error('Conversion failed:', err)
+      this.showToast(this.storageErrorMessage(err))
       if (this.startBtn) {
         this.startBtn.textContent = '▶ START!'
         this.startBtn.disabled = false
       }
     }
+  }
+
+  private async stageNextQueuedImport(): Promise<boolean> {
+    const next = ImportStaging.takeNextQueued()
+    if (!next) return false
+
+    try {
+      const bitmap = await decodeAndDownscale(next.imageBlob)
+      ImportStaging.set({ ...next, bitmap })
+      return true
+    } catch {
+      this.showToast(`Could not load ${next.suggestedTitle}.`)
+      return this.stageNextQueuedImport()
+    }
+  }
+
+  private storageErrorMessage(err: unknown): string {
+    if (err instanceof DOMException && err.name === 'QuotaExceededError') {
+      return 'Device storage is full. Delete some pictures in Settings, then try again.'
+    }
+    return 'Could not convert or save this picture. Try another photo or check device storage.'
+  }
+
+  private showToast(message: string): void {
+    const toast = document.createElement('div')
+    toast.textContent = message
+    toast.style.cssText = `
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--tc-ink-black);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      z-index: 999;
+      max-width: 90vw;
+      text-align: center;
+    `
+    document.body.appendChild(toast)
+    setTimeout(() => toast.remove(), 3500)
   }
 }

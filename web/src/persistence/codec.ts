@@ -27,6 +27,7 @@ export function encodeArtwork(artwork: Artwork): ArtworkRecord {
     isComplete: artwork.isComplete,
     sliderValue: artwork.conversionSettings.sliderValue,
     autoFillEnabled: artwork.conversionSettings.autoFillEnabled,
+    imageFit: artwork.conversionSettings.imageFit ?? 'cover',
     gridColumns: artwork.grid.columns,
     gridRows: artwork.grid.rows,
     paletteJson: JSON.stringify(artwork.palette.colours),
@@ -53,6 +54,7 @@ export function decodeArtwork(record: ArtworkRecord): Artwork {
 
   const conversionSettings = makeConversionSettings(record.sliderValue, {
     autoFillEnabled: record.autoFillEnabled ?? true,
+    imageFit: record.imageFit === 'contain' ? 'contain' : 'cover',
   })
 
   const source: ArtworkSource = record.sourceJson
