@@ -105,22 +105,22 @@ describe('PuzzleContainer source image toggle', () => {
     const print = root.querySelector<HTMLButtonElement>('[data-print-sheet]')!
     const sourceImage = root.querySelector<HTMLImageElement>('[data-source-image]')!
 
-    expect(print.style.display).toBe('inline-flex')
-    expect(toggle.style.display).toBe('inline-flex')
+    expect(print.hidden).toBe(false)
+    expect(toggle.hidden).toBe(false)
     expect(toggle.textContent).toBe('PHOTO')
     expect(sourceImage.src).toBe('blob:source-image')
-    expect(sourceImage.style.display).toBe('none')
+    expect(sourceImage.hidden).toBe(true)
 
     toggle.click()
 
     expect(toggle.textContent).toBe('PAINT')
     expect(toggle.getAttribute('aria-pressed')).toBe('true')
-    expect(sourceImage.style.display).toBe('block')
+    expect(sourceImage.hidden).toBe(false)
 
     toggle.click()
 
     expect(toggle.textContent).toBe('PHOTO')
-    expect(sourceImage.style.display).toBe('none')
+    expect(sourceImage.hidden).toBe(true)
 
     view.unmount()
   })
@@ -143,9 +143,9 @@ describe('PuzzleContainer source image toggle', () => {
     const print = root.querySelector<HTMLButtonElement>('[data-print-sheet]')!
     const sourceImage = root.querySelector<HTMLImageElement>('[data-source-image]')!
 
-    expect(print.style.display).toBe('inline-flex')
-    expect(toggle.style.display).toBe('none')
-    expect(sourceImage.style.display).toBe('none')
+    expect(print.hidden).toBe(false)
+    expect(toggle.hidden).toBe(true)
+    expect(sourceImage.hidden).toBe(true)
 
     view.unmount()
   })
@@ -166,7 +166,7 @@ describe('PuzzleContainer source image toggle', () => {
       return found!
     })
 
-    expect(credit.style.display).toBe('inline-flex')
+    expect(credit.hidden).toBe(false)
     credit.click()
 
     const details = document.body.querySelector<HTMLElement>('[data-attribution-details]')

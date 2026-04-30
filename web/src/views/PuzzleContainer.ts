@@ -12,6 +12,7 @@ import { ColourEncouragement } from './ColourEncouragement'
 import { BUNDLED_IMAGES } from '../assets/bundled'
 import { ManagedObjectUrls } from '../util/objectUrl'
 import { canPrintColourSheet, printArtworkSheet } from '../util/printSheet'
+import { createPanel, createPxButton, createTopBar } from '../ui/pixel'
 
 export class PuzzleContainer extends View {
   private root: HTMLElement | null = null
@@ -58,158 +59,83 @@ export class PuzzleContainer extends View {
     const sourceImageUrl = this.sourceImageUrlFor(artwork)
 
     const outer = document.createElement('div')
-    outer.style.cssText = `
-      display: flex;
-      flex-direction: column;
-      width: 100%;
-      height: 100%;
-      background: #f9fafb;
-      position: relative;
-    `
+    outer.className = 'tc-game-shell'
 
-    // Toolbar
-    const toolbar = document.createElement('div')
-    toolbar.style.cssText = `
-      display: flex;
-      align-items: center;
-      padding: 0 12px;
-      height: 52px;
-      flex-shrink: 0;
-      background: #fff;
-      border-bottom: 1px solid #e5e7eb;
-      gap: 8px;
-    `
+    const { bar: toolbar, titleEl } = createTopBar(artwork.title)
 
-    const backBtn = document.createElement('button')
-    backBtn.textContent = '← Home'
-    backBtn.style.cssText = `
-      padding: 8px 14px;
-      background: #f3f4f6;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 14px;
-    `
-    backBtn.addEventListener('click', () => this.router.navigate('#/'))
+    const backBtn = createPxButton({
+      label: 'HOME',
+      variant: 'ghost',
+      size: 'sm',
+      onClick: () => this.router.navigate('#/'),
+    })
 
-    const titleEl = document.createElement('span')
-    titleEl.textContent = artwork.title
-    titleEl.style.cssText = `
-      flex: 1;
-      text-align: center;
-      font-size: 18px;
-      font-weight: 700;
-      color: #1f2937;
-    `
+    const controls = document.createElement('div')
+    controls.className = 'tc-control-group'
 
-    const resetZoomBtn = document.createElement('button')
-    resetZoomBtn.textContent = '⊙'
+    const resetZoomBtn = createPxButton({
+      label: 'FIT',
+      ariaLabel: 'Reset zoom',
+      variant: 'ghost',
+      size: 'sm',
+    })
     resetZoomBtn.title = 'Reset zoom'
-    resetZoomBtn.style.cssText = `
-      padding: 8px 14px;
-      background: #f3f4f6;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 14px;
-    `
 
-    const undoBtn = document.createElement('button')
-    undoBtn.textContent = 'Undo'
-    undoBtn.style.cssText = `
-      padding: 8px 14px;
-      background: #f3f4f6;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 14px;
-    `
-    undoBtn.addEventListener('click', () => session.undo())
+    const undoBtn = createPxButton({
+      label: 'UNDO',
+      variant: 'ghost',
+      size: 'sm',
+      onClick: () => session.undo(),
+    })
 
-    const attributionBtn = document.createElement('button')
-    attributionBtn.textContent = 'CREDIT'
+    const attributionBtn = createPxButton({
+      label: 'CREDIT',
+      variant: 'ghost',
+      size: 'sm',
+    })
     attributionBtn.setAttribute('data-attribution-toggle', 'true')
-    attributionBtn.style.cssText = `
-      min-height: 44px;
-      padding: 8px 14px;
-      background: #f3f4f6;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 700;
-      font-size: 14px;
-      display: ${artwork.source.kind === 'search' ? 'inline-flex' : 'none'};
-      align-items: center;
-      justify-content: center;
-    `
+    attributionBtn.hidden = artwork.source.kind !== 'search'
     attributionBtn.addEventListener('click', () => this.showAttributionDetails(artwork))
 
-    const printBtn = document.createElement('button')
-    printBtn.textContent = 'PRINT'
+    const printBtn = createPxButton({
+      label: 'PRINT',
+      variant: 'ghost',
+      size: 'sm',
+    })
     printBtn.setAttribute('data-print-sheet', 'true')
-    printBtn.style.cssText = `
-      min-height: 44px;
-      padding: 8px 14px;
-      background: #f3f4f6;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 700;
-      font-size: 14px;
-      display: none;
-      align-items: center;
-      justify-content: center;
-    `
+    printBtn.hidden = true
     printBtn.addEventListener('click', () => {
       const snapshot = this.printableSnapshot()
       if (snapshot) printArtworkSheet(snapshot)
     })
     this.printBtn = printBtn
 
-    const sourceToggleBtn = document.createElement('button')
-    sourceToggleBtn.textContent = 'PHOTO'
+    const sourceToggleBtn = createPxButton({
+      label: 'PHOTO',
+      variant: 'accent',
+      size: 'sm',
+    })
     sourceToggleBtn.setAttribute('data-source-toggle', 'true')
     sourceToggleBtn.setAttribute('aria-pressed', 'false')
-    sourceToggleBtn.style.cssText = `
-      min-height: 44px;
-      padding: 8px 14px;
-      background: #f3f4f6;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 700;
-      font-size: 14px;
-      display: none;
-      align-items: center;
-      justify-content: center;
-    `
+    sourceToggleBtn.hidden = true
     sourceToggleBtn.addEventListener('click', () => this.toggleSourceImage())
     this.sourceToggleBtn = sourceToggleBtn
 
     toolbar.appendChild(backBtn)
     toolbar.appendChild(titleEl)
-    toolbar.appendChild(resetZoomBtn)
-    toolbar.appendChild(undoBtn)
-    toolbar.appendChild(attributionBtn)
-    toolbar.appendChild(printBtn)
-    toolbar.appendChild(sourceToggleBtn)
+    controls.appendChild(resetZoomBtn)
+    controls.appendChild(undoBtn)
+    controls.appendChild(attributionBtn)
+    controls.appendChild(printBtn)
+    controls.appendChild(sourceToggleBtn)
+    toolbar.appendChild(controls)
 
-    // Canvas area
     const canvasArea = document.createElement('div')
-    canvasArea.style.cssText = `
-      flex: 1;
-      min-height: 0;
-      position: relative;
-    `
+    canvasArea.className = 'tc-canvas-stage'
 
-    // Tool strip
     const toolbarStrip = new ToolbarStrip(session)
     this.toolbarStrip = toolbarStrip
 
-    // Palette strip
     const paletteStrip = new PaletteStrip(session)
     this.paletteStrip = paletteStrip
 
@@ -227,21 +153,13 @@ export class PuzzleContainer extends View {
       const sourceImage = document.createElement('img')
       sourceImage.src = sourceImageUrl
       sourceImage.alt = `${artwork.title} source image`
+      sourceImage.className = 'tc-source-image'
       sourceImage.setAttribute('data-source-image', 'true')
-      sourceImage.style.cssText = `
-        position: absolute;
-        inset: 0;
-        z-index: 3;
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-        background: white;
-        display: none;
-        pointer-events: none;
-      `
+      sourceImage.hidden = true
       canvasArea.appendChild(sourceImage)
       this.sourceImageEl = sourceImage
     }
+
     this.updateSourceToggle()
     this.updatePrintButton()
 
@@ -249,7 +167,6 @@ export class PuzzleContainer extends View {
     toolbarStrip.mount()
     paletteStrip.mount()
 
-    // First-run coach marks
     if (OnboardingCoach.shouldShow()) {
       const coach = new OnboardingCoach()
       this.onboardingCoach = coach
@@ -260,7 +177,6 @@ export class PuzzleContainer extends View {
       })
     }
 
-    // Show completion overlay when puzzle is finished
     this.unsub = session.on('change', (eventType) => {
       if (eventType === 'colourCompleted' && this.root) {
         const completedIndex = session.lastCompletedPaletteIndex
@@ -315,7 +231,7 @@ export class PuzzleContainer extends View {
 
   private updatePrintButton(): void {
     if (!this.printBtn) return
-    this.printBtn.style.display = this.printableSnapshot() ? 'inline-flex' : 'none'
+    this.printBtn.hidden = !this.printableSnapshot()
   }
 
   private updateSourceToggle(): void {
@@ -326,12 +242,12 @@ export class PuzzleContainer extends View {
       this.showingSourceImage = false
     }
 
-    this.sourceToggleBtn.style.display = canToggle ? 'inline-flex' : 'none'
+    this.sourceToggleBtn.hidden = !canToggle
     this.sourceToggleBtn.textContent = this.showingSourceImage ? 'PAINT' : 'PHOTO'
     this.sourceToggleBtn.setAttribute('aria-pressed', String(this.showingSourceImage))
 
     if (this.sourceImageEl) {
-      this.sourceImageEl.style.display = canToggle && this.showingSourceImage ? 'block' : 'none'
+      this.sourceImageEl.hidden = !(canToggle && this.showingSourceImage)
     }
   }
 
@@ -340,34 +256,14 @@ export class PuzzleContainer extends View {
 
     const attribution = artwork.source.attribution
     const overlay = document.createElement('div')
+    overlay.className = 'tc-modal-scrim'
     overlay.setAttribute('data-attribution-details', 'true')
-    overlay.style.cssText = `
-      position: fixed;
-      inset: 0;
-      z-index: 1200;
-      background: rgba(20,30,50,0.72);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    `
 
-    const panel = document.createElement('div')
-    panel.style.cssText = `
-      width: min(420px, 100%);
-      background: white;
-      border-radius: 8px;
-      padding: 20px;
-      color: #1f2937;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.25);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    `
+    const panel = createPanel('tc-modal-card')
 
     const title = document.createElement('h2')
-    title.textContent = 'Picture Credit'
-    title.style.cssText = 'margin: 0; font-size: 20px;'
+    title.className = 'px-title px-title--sm'
+    title.textContent = 'PICTURE CREDIT'
     panel.appendChild(title)
 
     const rows: Array<[string, string]> = [
@@ -379,7 +275,6 @@ export class PuzzleContainer extends View {
 
     for (const [label, value] of rows) {
       const row = document.createElement('p')
-      row.style.cssText = 'margin: 0; font-size: 14px; line-height: 1.4;'
       const strong = document.createElement('strong')
       strong.textContent = `${label}: `
       row.appendChild(strong)
@@ -387,19 +282,11 @@ export class PuzzleContainer extends View {
       panel.appendChild(row)
     }
 
-    const close = document.createElement('button')
-    close.textContent = 'CLOSE'
-    close.style.cssText = `
-      margin-top: 8px;
-      min-height: 44px;
-      padding: 8px 14px;
-      background: #f3f4f6;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 700;
-      text-align: center;
-    `
-    close.addEventListener('click', () => overlay.remove())
+    const close = createPxButton({
+      label: 'CLOSE',
+      variant: 'ghost',
+      onClick: () => overlay.remove(),
+    })
     panel.appendChild(close)
 
     overlay.addEventListener('click', (event) => {

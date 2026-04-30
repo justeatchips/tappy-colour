@@ -5,54 +5,28 @@ import { View, configureScrollableRoot } from './BaseView'
 import { UserSettings } from '../model/UserSettings'
 import { showConfirmDialog } from './ConfirmDialog'
 import { focusTextInputWhenHelpful } from '../util/focus'
+import { createPanel, createPxButton, createToast } from '../ui/pixel'
 
 type GateResult = 'pass' | 'cancel'
 
 function showMathGate(mode: 'setup' | 'verify'): Promise<GateResult> {
   return new Promise(resolve => {
     const overlay = document.createElement('div')
-    overlay.style.cssText = `
-      position: fixed;
-      inset: 0;
-      background: rgba(20,30,50,0.7);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 200;
-      padding: 20px;
-      box-sizing: border-box;
-    `
+    overlay.className = 'tc-modal-scrim'
 
-    const card = document.createElement('div')
-    card.className = 'px-panel'
-    card.style.cssText = `
-      max-width: 360px;
-      width: 100%;
-      padding: 28px 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    `
+    const card = createPanel('tc-modal-card')
 
     const challenge = mode === 'verify' ? UserSettings.makeChallenge() : null
 
     const title = document.createElement('h2')
-    title.className = 'px-title px-title--md'
-    title.style.cssText = 'text-align: center; margin: 0;'
+    title.className = 'px-title px-title--md tc-text-center'
     title.textContent = mode === 'setup' ? 'CREATE PARENT CODE' : 'PARENT CHECK'
     card.appendChild(title)
 
     const sub = document.createElement('p')
-    sub.style.cssText = `
-      margin: 0;
-      font-family: var(--tc-font-body);
-      font-size: 13px;
-      color: var(--tc-ink-soft);
-      text-align: center;
-      line-height: 1.5;
-    `
+    sub.className = 'tc-form-help'
     if (mode === 'setup') {
-      sub.textContent = 'Choose a number 10–30. Solve maths to access settings later.'
+      sub.textContent = 'Choose a number 10-30. Solve maths to access settings later.'
     } else {
       sub.textContent = `What is ${challenge!.question} = ?`
     }
@@ -71,43 +45,27 @@ function showMathGate(mode: 'setup' | 'verify'): Promise<GateResult> {
     } else {
       input.placeholder = '?'
     }
-    input.style.cssText = `
-      font-family: var(--tc-font-display);
-      font-size: 28px;
-      text-align: center;
-      padding: 12px;
-      border: 4px solid var(--tc-ink-black);
-      border-radius: 6px;
-      width: 100%;
-      box-sizing: border-box;
-      color: var(--tc-ink);
-      outline: none;
-    `
+    input.className = 'tc-number-input'
 
     const error = document.createElement('p')
-    error.style.cssText = `
-      margin: 0;
-      font-size: 13px;
-      color: var(--tc-danger);
-      text-align: center;
-      min-height: 18px;
-      font-weight: 700;
-    `
+    error.className = 'tc-form-error'
     card.appendChild(input)
     card.appendChild(error)
 
     const btnRow = document.createElement('div')
-    btnRow.style.cssText = 'display: flex; gap: 10px;'
+    btnRow.className = 'tc-modal-actions'
 
-    const cancelBtn = document.createElement('button')
-    cancelBtn.className = 'px-button px-button--ghost'
-    cancelBtn.textContent = 'CANCEL'
-    cancelBtn.addEventListener('click', () => dismiss('cancel'))
+    const cancelBtn = createPxButton({
+      label: 'CANCEL',
+      variant: 'ghost',
+      onClick: () => dismiss('cancel'),
+    })
 
-    const confirmBtn = document.createElement('button')
-    confirmBtn.className = 'px-button px-button--primary'
-    confirmBtn.textContent = mode === 'setup' ? 'SAVE' : 'CHECK'
-    confirmBtn.addEventListener('click', () => handleConfirm())
+    const confirmBtn = createPxButton({
+      label: mode === 'setup' ? 'SAVE' : 'CHECK',
+      variant: 'primary',
+      onClick: () => handleConfirm(),
+    })
 
     btnRow.appendChild(cancelBtn)
     btnRow.appendChild(confirmBtn)
@@ -128,7 +86,7 @@ function showMathGate(mode: 'setup' | 'verify'): Promise<GateResult> {
       }
       if (mode === 'setup') {
         if (val < 10 || val > 30) {
-          error.textContent = 'Pick 10–30.'
+          error.textContent = 'Pick 10-30.'
           shakeCard()
           return
         }
@@ -136,7 +94,7 @@ function showMathGate(mode: 'setup' | 'verify'): Promise<GateResult> {
         dismiss('pass')
       } else {
         if (val !== challenge!.answer) {
-          error.textContent = 'Not quite — try again.'
+          error.textContent = 'Not quite - try again.'
           input.value = ''
           shakeCard()
           return
@@ -213,35 +171,26 @@ export class SettingsScreen extends View {
     this.root.innerHTML = ''
 
     const page = document.createElement('div')
-    page.style.cssText = `
-      padding: 28px;
-      max-width: 800px;
-      margin: 0 auto;
-    `
+    page.className = 'tc-page settings-page'
 
     // Header
     const header = document.createElement('div')
-    header.style.cssText = `
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 26px;
-    `
+    header.className = 'settings-header'
 
-    const backBtn = document.createElement('button')
-    backBtn.className = 'px-button px-button--ghost'
-    backBtn.textContent = '← BACK'
-    backBtn.addEventListener('click', () => this.router.navigate('#/'))
+    const backBtn = createPxButton({
+      label: 'BACK',
+      variant: 'ghost',
+      onClick: () => this.router.navigate('#/'),
+    })
     header.appendChild(backBtn)
 
     const title = document.createElement('h1')
-    title.className = 'px-title px-title--md'
-    title.style.cssText = 'flex: 1; text-align: center; margin: 0;'
-    title.textContent = '⚙ SETTINGS'
+    title.className = 'px-title px-title--md settings-title'
+    title.textContent = 'SETTINGS'
     header.appendChild(title)
 
     const spacer = document.createElement('div')
-    spacer.style.cssText = 'width: 110px;'
+    spacer.className = 'settings-header__spacer'
     header.appendChild(spacer)
 
     page.appendChild(header)
@@ -255,7 +204,7 @@ export class SettingsScreen extends View {
     // Sound
     settingsGrid.appendChild(
       this.makeSettingRow(
-        '🔊 Sound Effects',
+        'Sound Effects',
         'Tap sounds and completion chime',
         s.soundEnabled,
         v => UserSettings.update({ soundEnabled: v })
@@ -265,7 +214,7 @@ export class SettingsScreen extends View {
     // Search
     settingsGrid.appendChild(
       this.makeSettingRow(
-        '🔍 Internet Search',
+        'Internet Search',
         'Lets your child search safe images',
         s.searchEnabled,
         v => UserSettings.update({ searchEnabled: v })
@@ -275,7 +224,7 @@ export class SettingsScreen extends View {
     // Auto-fill
     settingsGrid.appendChild(
       this.makeSettingRow(
-        '✨ Auto-Fill',
+        'Auto-Fill',
         'Quick-fill adjacent cells same colour',
         s.autoFillEnabled,
         v => UserSettings.update({ autoFillEnabled: v })
@@ -284,15 +233,11 @@ export class SettingsScreen extends View {
 
     // Default difficulty
     const diffPanel = document.createElement('div')
-    diffPanel.className = 'px-panel'
-    diffPanel.style.cssText = `
-      padding: 14px;
-      grid-column: 1 / -1;
-    `
+    diffPanel.className = 'px-panel settings-wide-panel'
 
     const diffTitle = document.createElement('div')
     diffTitle.className = 'setting-row__title'
-    diffTitle.textContent = '🐣 Default Difficulty'
+    diffTitle.textContent = 'Default Difficulty'
     diffPanel.appendChild(diffTitle)
 
     const diffSub = document.createElement('div')
@@ -306,59 +251,44 @@ export class SettingsScreen extends View {
     slider.max = '1'
     slider.step = '0.01'
     slider.value = String(s.defaultSliderValue)
-    slider.style.cssText = `
-      width: 100%;
-      margin: 14px 0;
-      accent-color: var(--tc-primary);
-      cursor: pointer;
-    `
+    slider.className = 'settings-range'
     slider.addEventListener('input', () => {
       UserSettings.update({ defaultSliderValue: parseFloat(slider.value) })
     })
     diffPanel.appendChild(slider)
 
     const diffLabels = document.createElement('div')
-    diffLabels.style.cssText = `
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      color: var(--tc-ink-soft);
-      font-weight: 700;
-    `
-    diffLabels.textContent = 'EASY                                 HARD'
+    diffLabels.className = 'settings-difficulty-labels'
+    diffLabels.innerHTML = '<span>EASY</span><span>HARD</span>'
     diffPanel.appendChild(diffLabels)
 
     settingsGrid.appendChild(diffPanel)
 
     // Change parent code
-    const changePinBtn = document.createElement('button')
-    changePinBtn.className = 'px-button px-button--primary'
-    changePinBtn.style.cssText = `
-      grid-column: 1 / -1;
-      width: 100%;
-    `
-    changePinBtn.textContent = '🔐 CHANGE PARENT CODE'
-    changePinBtn.addEventListener('click', async () => {
-      const result = await showMathGate('setup')
-      if (result === 'pass') this.showToast('Parent code updated.')
+    const changePinBtn = createPxButton({
+      label: 'CHANGE PARENT CODE',
+      variant: 'primary',
+      className: 'settings-wide-button',
+      onClick: async () => {
+        const result = await showMathGate('setup')
+        if (result === 'pass') this.showToast('Parent code updated.')
+      },
     })
     settingsGrid.appendChild(changePinBtn)
 
-    const manageBtn = document.createElement('button')
-    manageBtn.className = 'px-button px-button--ghost'
-    manageBtn.style.cssText = `
-      grid-column: 1 / -1;
-      width: 100%;
-    `
-    manageBtn.textContent = this.manageOpen ? 'HIDE PICTURE MANAGER' : 'SELECT PICTURES'
-    manageBtn.addEventListener('click', () => {
-      if (this.manageOpen) {
-        this.manageOpen = false
-        this.selectedArtworkIds.clear()
-        this.render()
-        return
-      }
-      void this.openPictureManager()
+    const manageBtn = createPxButton({
+      label: this.manageOpen ? 'HIDE PICTURE MANAGER' : 'SELECT PICTURES',
+      variant: 'ghost',
+      className: 'settings-wide-button',
+      onClick: () => {
+        if (this.manageOpen) {
+          this.manageOpen = false
+          this.selectedArtworkIds.clear()
+          this.render()
+          return
+        }
+        void this.openPictureManager()
+      },
     })
     settingsGrid.appendChild(manageBtn)
 
@@ -367,17 +297,12 @@ export class SettingsScreen extends View {
     }
 
     // Reset all
-    const resetBtn = document.createElement('button')
-    resetBtn.className = 'px-button'
-    resetBtn.style.cssText = `
-      grid-column: 1 / -1;
-      width: 100%;
-      background: var(--tc-danger);
-      color: white;
-      border-color: var(--tc-ink-black);
-    `
-    resetBtn.textContent = '🗑 DELETE ALL PICTURES'
-    resetBtn.addEventListener('click', () => this.handleClearAll())
+    const resetBtn = createPxButton({
+      label: 'DELETE ALL PICTURES',
+      variant: 'danger',
+      className: 'settings-wide-button',
+      onClick: () => this.handleClearAll(),
+    })
     settingsGrid.appendChild(resetBtn)
 
     page.appendChild(settingsGrid)
@@ -387,13 +312,6 @@ export class SettingsScreen extends View {
   private makeSettingRow(label: string, sub: string, value: boolean, onChange: (v: boolean) => void): HTMLElement {
     const row = document.createElement('div')
     row.className = 'px-panel setting-row'
-    row.style.cssText = `
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 14px;
-    `
 
     const text = document.createElement('div')
     const l = document.createElement('div')
@@ -439,15 +357,8 @@ export class SettingsScreen extends View {
 
   private makePictureManager(): HTMLElement {
     const panel = document.createElement('div')
-    panel.className = 'px-panel'
+    panel.className = 'px-panel settings-picture-manager'
     panel.setAttribute('data-picture-manager', 'true')
-    panel.style.cssText = `
-      grid-column: 1 / -1;
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    `
 
     const title = document.createElement('div')
     title.className = 'setting-row__title'
@@ -472,27 +383,13 @@ export class SettingsScreen extends View {
 
     for (const artwork of this.artworks) {
       const row = document.createElement('label')
-      row.style.cssText = `
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        min-height: 44px;
-        padding: 8px;
-        border: 2px solid rgba(31,46,74,0.14);
-        border-radius: 4px;
-        cursor: pointer;
-      `
+      row.className = 'settings-picture-row'
 
       const checkbox = document.createElement('input')
       checkbox.type = 'checkbox'
       checkbox.checked = this.selectedArtworkIds.has(artwork.id)
       checkbox.setAttribute('data-manage-picture', artwork.id)
-      checkbox.style.cssText = `
-        width: 24px;
-        height: 24px;
-        flex: 0 0 24px;
-        accent-color: var(--tc-primary);
-      `
+      checkbox.className = 'settings-picture-checkbox'
       checkbox.addEventListener('change', () => {
         if (checkbox.checked) this.selectedArtworkIds.add(artwork.id)
         else this.selectedArtworkIds.delete(artwork.id)
@@ -501,34 +398,20 @@ export class SettingsScreen extends View {
 
       const text = document.createElement('span')
       text.textContent = artwork.title
-      text.style.cssText = `
-        flex: 1;
-        min-width: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        font-weight: 800;
-      `
+      text.className = 'settings-picture-title'
 
       row.appendChild(checkbox)
       row.appendChild(text)
       panel.appendChild(row)
     }
 
-    const deleteSelected = document.createElement('button')
-    deleteSelected.className = 'px-button'
+    const deleteSelected = createPxButton({
+      label: `DELETE SELECTED (${this.selectedArtworkIds.size})`,
+      variant: 'danger',
+    })
     deleteSelected.setAttribute('data-delete-selected-pictures', 'true')
     deleteSelected.disabled = this.selectedArtworkIds.size === 0
-    deleteSelected.style.cssText = `
-      width: 100%;
-      margin-top: 4px;
-      background: var(--tc-danger);
-      color: white;
-      border-color: var(--tc-ink-black);
-      opacity: ${deleteSelected.disabled ? '0.55' : '1'};
-      cursor: ${deleteSelected.disabled ? 'not-allowed' : 'pointer'};
-    `
-    deleteSelected.textContent = `DELETE SELECTED (${this.selectedArtworkIds.size})`
+    deleteSelected.classList.add('settings-wide-button')
     deleteSelected.addEventListener('click', () => { void this.handleDeleteSelected() })
     panel.appendChild(deleteSelected)
 
@@ -565,23 +448,7 @@ export class SettingsScreen extends View {
   }
 
   private showToast(message: string): void {
-    const toast = document.createElement('div')
-    toast.textContent = message
-    toast.style.cssText = `
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--tc-ink-black);
-      color: white;
-      padding: 12px 20px;
-      border-radius: 8px;
-      font-size: 14px;
-      z-index: 999;
-      max-width: 90vw;
-      text-align: center;
-      font-family: var(--tc-font-body);
-    `
+    const toast = createToast(message)
     document.body.appendChild(toast)
     setTimeout(() => toast.remove(), 3000)
   }

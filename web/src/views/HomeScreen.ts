@@ -65,25 +65,14 @@ export class HomeScreen extends View {
     this.root.innerHTML = ''
 
     const container = document.createElement('div')
-    container.style.cssText = `
-      padding: 28px;
-      max-width: 1080px;
-      margin: 0 auto;
-    `
+    container.className = 'tc-page home-page'
 
     // Header
     const header = document.createElement('header')
     header.className = 'home-header'
-    header.style.cssText = `
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 26px;
-    `
 
     const mascotPanel = document.createElement('div')
-    mascotPanel.className = 'px-panel'
-    mascotPanel.style.cssText = 'padding: 8px; line-height: 0;'
+    mascotPanel.className = 'px-panel home-header__mascot-panel'
 
     const settings = UserSettings.get()
     const mascotId = resolveMascotId(settings.mascotId)
@@ -95,28 +84,22 @@ export class HomeScreen extends View {
     header.appendChild(mascotPanel)
 
     const headerInfo = document.createElement('div')
-    headerInfo.style.cssText = 'flex: 1;'
+    headerInfo.className = 'home-header__info'
 
     const greeting = document.createElement('div')
-    greeting.style.cssText = `
-      font-family: var(--tc-font-display);
-      font-size: 12px;
-      letter-spacing: 1px;
-      color: var(--tc-ink-soft);
-    `
+    greeting.className = 'home-header__greeting'
     const mascot = getMascotById(mascotId)
     greeting.textContent = `HI ${mascot?.name?.toUpperCase() || 'BUDDY'}!`
     headerInfo.appendChild(greeting)
 
     const title = document.createElement('div')
-    title.className = 'px-title px-title--md'
+    title.className = 'px-title px-title--md home-header__title'
     title.textContent = 'TAPPY COLOUR'
     headerInfo.appendChild(title)
     header.appendChild(headerInfo)
 
     const settingsBtn = document.createElement('button')
-    settingsBtn.className = 'px-button px-button--ghost'
-    settingsBtn.style.cssText = 'width: 60px;'
+    settingsBtn.className = 'px-button px-button--ghost px-button--icon'
     settingsBtn.textContent = '⚙'
     settingsBtn.id = 'home-settings-btn'
     settingsBtn.addEventListener('click', () => this.router.navigate('#/settings'))
@@ -126,13 +109,7 @@ export class HomeScreen extends View {
 
     // Action buttons
     const actionRow = document.createElement('div')
-    actionRow.style.cssText = `
-      display: flex;
-      gap: 14px;
-      margin-bottom: 28px;
-      justify-content: center;
-      flex-wrap: wrap;
-    `
+    actionRow.className = 'home-action-row'
 
     const cameraBtn = this.makeActionBtn('📷', 'CAMERA', 'home-action-btn--primary', () => this.handleCamera())
     const photosBtn = this.makeActionBtn('🖼', 'PHOTOS', 'home-action-btn--accent', () => this.handleLibrary())
@@ -223,9 +200,6 @@ export class HomeScreen extends View {
         },
         onDelete: !isStarter ? () => this.handleDelete(artwork) : () => {},
       })
-
-      card.className = 'px-panel gallery-card'
-      card.style.cssText = 'cursor: pointer; text-align: center; padding: 10px; font-family: inherit; width: 100%;'
 
       galleryGrid.appendChild(card)
     }

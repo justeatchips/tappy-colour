@@ -1,13 +1,23 @@
 import type { Router } from '../router'
-import { View, configureFixedRoot } from './BaseView'
+import { View, configureScrollableRoot } from './BaseView'
 import { sanitizeQuery, filterResults, type OpenverseResult } from '../util/searchSafety'
 import { ImportStaging } from '../model/ImportStaging'
 import type { SearchAttribution } from '../model/Artwork'
 import { blurActiveTextEditingElement, focusTextInputWhenHelpful } from '../util/focus'
+import { createIconButton, createToast } from '../ui/pixel'
 
 const OPENVERSE_BASE = 'https://api.openverse.org/v1/images/'
 const PAGE_SIZE = 20
 const MAX_SEARCH_IMAGE_BYTES = 15 * 1024 * 1024
+
+const BACK_ICON = `<svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M13.5 5L7.5 11L13.5 17" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`
+
+const SEARCH_ICON = `<svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="9.5" cy="9.5" r="5.5" stroke="currentColor" stroke-width="2"/>
+  <path d="M14 14L19 19" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+</svg>`
 
 type SearchImageKind = 'full' | 'thumbnail'
 
@@ -27,10 +37,7 @@ export class SearchScreen extends View {
 
   mount(root: HTMLElement): void {
     this.root = root
-    configureFixedRoot(root)
-    root.style.display = 'flex'
-    root.style.flexDirection = 'column'
-    root.style.height = '100%'
+    configureScrollableRoot(root)
     this.render()
   }
 
@@ -48,50 +55,29 @@ export class SearchScreen extends View {
     this.root.innerHTML = ''
 
     const page = document.createElement('div')
-    page.style.cssText = `
-      display: flex; flex-direction: column; height: 100%;
-      font-family: system-ui, sans-serif; background: #f9fafb;
-    `
+    page.className = 'tc-search-screen'
 
-    // Header
     const header = document.createElement('div')
-    header.style.cssText = `
-      display: flex; align-items: center; gap: 10px;
-      padding: 14px 16px; background: white;
-      border-bottom: 1px solid #e5e7eb; flex-shrink: 0;
-    `
+    header.className = 'tc-search-header'
 
-    const backBtn = document.createElement('button')
-    backBtn.textContent = '←'
-    backBtn.setAttribute('aria-label', 'Back')
-    backBtn.style.cssText = `
-      font-size: 22px; background: none; border: none; cursor: pointer;
-      min-width: 44px; min-height: 44px; border-radius: 8px; line-height: 1;
-      color: #2563eb;
-    `
-    backBtn.addEventListener('click', () => this.router.navigate('#/'))
+    const backBtn = createIconButton('Back', BACK_ICON, {
+      variant: 'ghost',
+      onClick: () => this.router.navigate('#/'),
+    })
     backBtn.addEventListener('touchend', (e) => { e.preventDefault(); this.router.navigate('#/') })
 
     const input = document.createElement('input')
     input.type = 'text'
-    input.placeholder = 'Search for a picture…'
+    input.className = 'tc-input'
+    input.placeholder = 'Search for a picture...'
     input.setAttribute('aria-label', 'Search')
-    input.style.cssText = `
-      flex: 1; padding: 10px 14px; font-size: 16px;
-      border: 2px solid #d1d5db; border-radius: 10px; outline: none;
-      min-height: 44px; box-sizing: border-box;
-    `
-    input.addEventListener('focus', () => { input.style.borderColor = '#2563eb' })
-    input.addEventListener('blur', () => { input.style.borderColor = '#d1d5db' })
 
-    const searchBtn = document.createElement('button')
-    searchBtn.textContent = '🔍'
-    searchBtn.setAttribute('aria-label', 'Search')
-    searchBtn.style.cssText = `
-      font-size: 20px; background: #2563eb; color: white; border: none;
-      border-radius: 10px; cursor: pointer; min-width: 44px; min-height: 44px;
-      padding: 0 12px; line-height: 1;
-    `
+    const searchBtn = createIconButton('Search', SEARCH_ICON, {
+      variant: 'primary',
+    })
+
+    const resultsArea = document.createElement('div')
+    resultsArea.className = 'tc-search-results'
 
     const doSearch = () => {
       input.blur()
@@ -106,48 +92,36 @@ export class SearchScreen extends View {
     header.appendChild(input)
     header.appendChild(searchBtn)
 
-    // Results area
-    const resultsArea = document.createElement('div')
-    resultsArea.style.cssText = `
-      flex: 1; overflow-y: auto; padding: 16px;
-    `
     this.showPlaceholder(resultsArea)
 
     page.appendChild(header)
     page.appendChild(resultsArea)
     this.root.appendChild(page)
 
-    // Helpful on desktop, noisy on iPad where motion can trigger "Undo Typing".
     setTimeout(() => focusTextInputWhenHelpful(input), 50)
   }
 
   private showPlaceholder(area: HTMLElement): void {
     area.innerHTML = ''
     const msg = document.createElement('p')
+    msg.className = 'tc-empty-state px-panel'
     msg.textContent = 'Type something to search for free pictures!'
-    msg.style.cssText = `
-      color: #9ca3af; font-size: 16px; text-align: center; margin-top: 40px;
-    `
     area.appendChild(msg)
   }
 
   private showLoading(area: HTMLElement): void {
     area.innerHTML = ''
     const msg = document.createElement('p')
-    msg.textContent = 'Searching…'
-    msg.style.cssText = `
-      color: #6b7280; font-size: 16px; text-align: center; margin-top: 40px;
-    `
+    msg.className = 'tc-empty-state px-panel'
+    msg.textContent = 'Searching...'
     area.appendChild(msg)
   }
 
   private showError(area: HTMLElement, message: string): void {
     area.innerHTML = ''
     const msg = document.createElement('p')
+    msg.className = 'tc-empty-state tc-empty-state--danger px-panel'
     msg.textContent = message
-    msg.style.cssText = `
-      color: #dc2626; font-size: 16px; text-align: center; margin-top: 40px; padding: 0 20px;
-    `
     area.appendChild(msg)
   }
 
@@ -156,32 +130,22 @@ export class SearchScreen extends View {
 
     if (results.length === 0) {
       const msg = document.createElement('p')
-      msg.textContent = 'No pictures found — try different words!'
-      msg.style.cssText = `
-        color: #9ca3af; font-size: 16px; text-align: center; margin-top: 40px;
-      `
+      msg.className = 'tc-empty-state px-panel'
+      msg.textContent = 'No pictures found - try different words!'
       area.appendChild(msg)
       return
     }
 
     const grid = document.createElement('div')
-    grid.style.cssText = `
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      gap: 12px;
-    `
+    grid.className = 'tc-search-results-grid'
 
     for (const result of results) {
       grid.appendChild(this.makeResultCard(result))
     }
 
     const credit = document.createElement('p')
-    credit.innerHTML = 'Images from <a href="https://openverse.org" target="_blank" rel="noopener">Openverse</a> — free to use'
-    credit.style.cssText = `
-      color: #9ca3af; font-size: 12px; text-align: center; margin-top: 12px;
-    `
-    const link = credit.querySelector('a') as HTMLAnchorElement
-    if (link) link.style.cssText = 'color: #6b7280;'
+    credit.className = 'tc-search-credit'
+    credit.innerHTML = 'Images from <a href="https://openverse.org" target="_blank" rel="noopener">Openverse</a> - free to use'
 
     area.appendChild(grid)
     area.appendChild(credit)
@@ -189,32 +153,19 @@ export class SearchScreen extends View {
 
   private makeResultCard(result: OpenverseResult): HTMLElement {
     const card = document.createElement('button')
-    card.style.cssText = `
-      background: white; border: 2px solid #e5e7eb; border-radius: 10px;
-      padding: 0; cursor: pointer; overflow: hidden;
-      display: flex; flex-direction: column; align-items: stretch;
-      min-height: 120px; transition: border-color 0.15s;
-    `
+    card.type = 'button'
+    card.className = 'tc-search-card'
     card.setAttribute('aria-label', result.title || 'Search result')
-    card.addEventListener('mouseenter', () => { card.style.borderColor = '#2563eb' })
-    card.addEventListener('mouseleave', () => { card.style.borderColor = '#e5e7eb' })
 
     const img = document.createElement('img')
     img.src = result.thumbnail
     img.alt = result.title || ''
     img.crossOrigin = 'anonymous'
-    img.style.cssText = `
-      width: 100%; aspect-ratio: 1; object-fit: cover; display: block;
-    `
     img.addEventListener('error', () => {
       img.style.display = 'none'
       const fallback = document.createElement('div')
-      fallback.textContent = '🖼'
-      fallback.style.cssText = `
-        width: 100%; aspect-ratio: 1; display: flex;
-        align-items: center; justify-content: center; font-size: 32px;
-        background: #f3f4f6;
-      `
+      fallback.className = 'tc-search-card__fallback'
+      fallback.textContent = 'IMG'
       card.insertBefore(fallback, card.firstChild)
     })
 
@@ -230,7 +181,7 @@ export class SearchScreen extends View {
   private async handleSearch(rawQuery: string, area: HTMLElement): Promise<void> {
     const query = sanitizeQuery(rawQuery)
     if (!query) {
-      this.showError(area, "That search isn't available — try something else!")
+      this.showError(area, "That search isn't available - try something else!")
       return
     }
 
@@ -260,7 +211,7 @@ export class SearchScreen extends View {
       this.showResults(area, filtered)
     } catch (err) {
       if ((err as Error).name === 'AbortError') return
-      this.showError(area, "Can't connect — check your internet connection.")
+      this.showError(area, "Can't connect - check your internet connection.")
     }
   }
 
@@ -268,14 +219,9 @@ export class SearchScreen extends View {
     if (!this.root) return
     blurActiveTextEditingElement()
 
-    // Show loading overlay
     const overlay = document.createElement('div')
-    overlay.style.cssText = `
-      position: fixed; inset: 0; background: rgba(0,0,0,0.4);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 100; font-size: 16px; color: white; font-family: system-ui, sans-serif;
-    `
-    overlay.textContent = 'Loading picture…'
+    overlay.className = 'tc-loading-overlay'
+    overlay.textContent = 'Loading picture...'
     this.root.appendChild(overlay)
 
     try {
@@ -306,14 +252,7 @@ export class SearchScreen extends View {
       this.router.navigate('#/difficulty/import')
     } catch {
       overlay.remove()
-      const errMsg = document.createElement('div')
-      errMsg.textContent = "Couldn't load that picture — try another one."
-      errMsg.style.cssText = `
-        position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-        background: #1f2937; color: white; padding: 12px 20px; border-radius: 8px;
-        font-size: 14px; z-index: 99; max-width: 90vw; text-align: center;
-        font-family: system-ui, sans-serif;
-      `
+      const errMsg = createToast("Couldn't load that picture - try another one.")
       this.root?.appendChild(errMsg)
       setTimeout(() => errMsg.remove(), 3500)
     }

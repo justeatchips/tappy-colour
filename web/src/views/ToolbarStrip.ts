@@ -1,5 +1,6 @@
 import type { PaintingSession } from '../model/PaintingSession'
 import type { PaintTool } from '../model/PaintTool'
+import { pulseElement } from '../ui/pixel'
 
 const TOOLS: Array<{ tool: PaintTool; label: string; icon: string }> = [
   {
@@ -47,15 +48,7 @@ export class ToolbarStrip {
 
   constructor(private session: PaintingSession) {
     this.el = document.createElement('div')
-    this.el.style.cssText = `
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      background: #fff;
-      border-bottom: 1px solid #e5e7eb;
-      flex-shrink: 0;
-    `
+    this.el.className = 'tc-tool-strip'
     this.buildButtons()
   }
 
@@ -80,29 +73,14 @@ export class ToolbarStrip {
   private buildButtons(): void {
     for (const { tool, label, icon } of TOOLS) {
       const btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'tc-tool-button'
       btn.setAttribute('aria-label', label)
       btn.innerHTML = icon
-      btn.style.cssText = `
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 44px;
-        height: 44px;
-        min-width: 44px;
-        min-height: 44px;
-        border: 2px solid transparent;
-        border-radius: 10px;
-        background: #f3f4f6;
-        color: #374151;
-        cursor: pointer;
-        padding: 0;
-        transition: transform 0.15s, background 0.15s, border-color 0.15s;
-      `
 
       const activate = () => {
         this.session.setTool(tool)
-        btn.style.transform = 'scale(1.15)'
-        setTimeout(() => { btn.style.transform = 'scale(1)' }, 150)
+        pulseElement(btn)
       }
 
       btn.addEventListener('click', activate)
@@ -116,8 +94,7 @@ export class ToolbarStrip {
     hintBtn.title = 'Hint'
     const requestHint = () => {
       this.session.requestHint()
-      hintBtn.style.transform = 'scale(1.15)'
-      setTimeout(() => { hintBtn.style.transform = 'scale(1)' }, 150)
+      pulseElement(hintBtn)
     }
     hintBtn.addEventListener('click', requestHint)
     hintBtn.addEventListener('touchend', (e) => { e.preventDefault(); requestHint() })
@@ -126,51 +103,29 @@ export class ToolbarStrip {
 
     // Spacer so label sits right-aligned
     const spacer = document.createElement('div')
-    spacer.style.flex = '1'
+    spacer.className = 'tc-tool-spacer'
     this.el.appendChild(spacer)
 
     // Tool name label
     const label = document.createElement('span')
     label.id = 'toolbar-tool-label'
-    label.style.cssText = `font-size: 12px; color: #6b7280; font-weight: 600;`
+    label.className = 'tc-tool-label'
     this.el.appendChild(label)
   }
 
   private makeIconButton(label: string, icon: string): HTMLButtonElement {
     const btn = document.createElement('button')
+    btn.type = 'button'
+    btn.className = 'tc-tool-button'
     btn.setAttribute('aria-label', label)
     btn.innerHTML = icon
-    btn.style.cssText = `
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 44px;
-      height: 44px;
-      min-width: 44px;
-      min-height: 44px;
-      border: 2px solid transparent;
-      border-radius: 10px;
-      background: #f3f4f6;
-      color: #374151;
-      cursor: pointer;
-      padding: 0;
-      transition: transform 0.15s, background 0.15s, border-color 0.15s, opacity 0.15s;
-    `
     return btn
   }
 
   private updateSelection(): void {
     const active = this.session.currentTool
     for (const [tool, btn] of this.buttons) {
-      if (tool === active) {
-        btn.style.background = '#dbeafe'
-        btn.style.borderColor = '#2563eb'
-        btn.style.color = '#1d4ed8'
-      } else {
-        btn.style.background = '#f3f4f6'
-        btn.style.borderColor = 'transparent'
-        btn.style.color = '#374151'
-      }
+      btn.dataset.active = String(tool === active)
     }
 
     const labelEl = this.el.querySelector('#toolbar-tool-label') as HTMLElement | null
@@ -186,7 +141,5 @@ export class ToolbarStrip {
     if (!this.hintButton) return
     const hasHintCells = this.session.grid.unpaintedForColour(this.session.selectedPaletteIndex) > 0
     this.hintButton.disabled = !hasHintCells
-    this.hintButton.style.opacity = hasHintCells ? '1' : '0.45'
-    this.hintButton.style.cursor = hasHintCells ? 'pointer' : 'not-allowed'
   }
 }

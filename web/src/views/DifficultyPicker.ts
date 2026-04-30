@@ -14,6 +14,7 @@ import { drawImageFit, makeSourceImageBlob, makeThumbnail, type ImageFit } from 
 import { ManagedObjectUrls } from '../util/objectUrl'
 import { UserSettings } from '../model/UserSettings'
 import { decodeAndDownscale } from '../util/imageImport'
+import { createPanel, createPxButton, createToast } from '../ui/pixel'
 
 export class DifficultyPicker extends View {
   private root: HTMLElement | null = null
@@ -46,14 +47,15 @@ export class DifficultyPicker extends View {
     const topBar = document.createElement('div')
     topBar.className = 'difficulty-topbar'
 
-    const backBtn = document.createElement('button')
-    backBtn.className = 'px-button px-button--ghost'
-    backBtn.id = 'diff-back-btn'
-    backBtn.textContent = '← BACK'
-    backBtn.addEventListener('click', () => {
-      ImportStaging.clearQueue()
-      this.router.navigate('#/')
+    const backBtn = createPxButton({
+      label: 'BACK',
+      variant: 'ghost',
+      onClick: () => {
+        ImportStaging.clearQueue()
+        this.router.navigate('#/')
+      },
     })
+    backBtn.id = 'diff-back-btn'
     topBar.appendChild(backBtn)
 
     const topTitle = document.createElement('div')
@@ -82,34 +84,16 @@ export class DifficultyPicker extends View {
     const rightCol = document.createElement('div')
     rightCol.className = 'difficulty-controls-col'
 
-    const controlsPanel = document.createElement('div')
-    controlsPanel.className = 'px-panel'
-    controlsPanel.style.cssText = 'padding: 20px;'
+    const controlsPanel = createPanel('difficulty-panel')
 
     const meterLabel = document.createElement('div')
-    meterLabel.style.cssText = `
-      font-family: var(--tc-font-display);
-      font-size: 14px;
-      letter-spacing: 0.5px;
-      color: var(--tc-ink-soft);
-      margin-bottom: 12px;
-    `
-    meterLabel.textContent = '★ DIFFICULTY METER ★'
+    meterLabel.className = 'difficulty-meter-label'
+    meterLabel.textContent = 'DIFFICULTY METER'
     controlsPanel.appendChild(meterLabel)
 
     const meterContainer = document.createElement('div')
     meterContainer.id = 'diff-meter'
-    meterContainer.style.cssText = `
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      gap: 4px;
-      padding: 12px 4px;
-      min-height: 60px;
-      background: var(--tc-bg-alt);
-      border: 3px solid var(--tc-ink-black);
-      margin-bottom: 18px;
-    `
+    meterContainer.className = 'difficulty-meter'
 
     // Add chick row indicators
     this.chickRow = new ChickRow()
@@ -125,13 +109,7 @@ export class DifficultyPicker extends View {
     slider.max = '100'
     slider.value = String(Math.round(this.sliderValue * 100))
     this.sliderInput = slider
-    slider.style.cssText = `
-      width: 100%;
-      height: 36px;
-      margin-bottom: 18px;
-      accent-color: var(--tc-primary);
-      cursor: pointer;
-    `
+    slider.className = 'difficulty-range'
 
     slider.addEventListener('input', (e) => {
       this.setSliderValue((e.target as HTMLInputElement).valueAsNumber / 100)
@@ -154,12 +132,15 @@ export class DifficultyPicker extends View {
 
     rightCol.appendChild(controlsPanel)
 
-    const startBtn = document.createElement('button')
-    startBtn.className = 'px-button px-button--primary px-button--lg difficulty-start-btn'
+    const startBtn = createPxButton({
+      label: 'START!',
+      variant: 'primary',
+      size: 'lg',
+      className: 'difficulty-start-btn',
+      onClick: () => { this.startGame() },
+    })
     startBtn.id = 'diff-start-btn'
-    startBtn.textContent = '▶ START!'
     this.startBtn = startBtn
-    startBtn.addEventListener('click', () => { this.startGame() })
     startBtn.addEventListener('touchend', (e) => { e.preventDefault(); this.startGame() })
 
     rightCol.appendChild(startBtn)
@@ -182,22 +163,15 @@ export class DifficultyPicker extends View {
     this.previewCards = []
     this.previewCanvases = []
 
-    const panel = document.createElement('div')
-    panel.className = 'px-panel'
-    panel.style.cssText = 'padding: 18px;'
+    const panel = createPanel('difficulty-preview-panel')
 
     const title = document.createElement('div')
-    title.className = 'px-title px-title--sm'
-    title.style.cssText = 'text-align: center; margin-bottom: 14px;'
+    title.className = 'px-title px-title--sm difficulty-preview-heading'
     title.textContent = 'PREVIEW'
     panel.appendChild(title)
 
     const fitControls = document.createElement('div')
-    fitControls.style.cssText = `
-      display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
-    `
+    fitControls.className = 'difficulty-fit-controls'
     fitControls.appendChild(this.makeFitButton('cover', 'FILL'))
     fitControls.appendChild(this.makeFitButton('contain', 'FIT'))
     panel.appendChild(fitControls)
@@ -215,22 +189,13 @@ export class DifficultyPicker extends View {
   }
 
   private makeFitButton(fit: ImageFit, label: string): HTMLButtonElement {
-    const button = document.createElement('button')
-    button.type = 'button'
+    const button = createPxButton({
+      label,
+      variant: 'ghost',
+      className: 'difficulty-fit-button',
+      onClick: () => this.setImageFit(fit),
+    })
     button.setAttribute('data-image-fit', fit)
-    button.textContent = label
-    button.style.cssText = `
-      flex: 1;
-      min-height: 44px;
-      padding: 8px;
-      border: 3px solid var(--tc-ink-black);
-      border-radius: 4px;
-      font-family: var(--tc-font-display);
-      font-size: 12px;
-      cursor: pointer;
-      text-align: center;
-    `
-    button.addEventListener('click', () => this.setImageFit(fit))
     return button
   }
 
@@ -246,28 +211,14 @@ export class DifficultyPicker extends View {
     for (const button of buttons) {
       const selected = button.dataset.imageFit === this.imageFit
       button.setAttribute('aria-pressed', String(selected))
-      button.style.background = selected ? 'var(--tc-primary-soft)' : 'var(--tc-surface)'
-      button.style.boxShadow = selected ? '0 2px 0 0 var(--tc-ink-black)' : '0 4px 0 0 var(--tc-ink-black)'
-      button.style.transform = selected ? 'translateY(2px)' : 'translateY(0)'
     }
   }
 
   private makePreviewCard(preview: DifficultyPreview): HTMLElement {
     const card = document.createElement('button')
     card.type = 'button'
+    card.className = 'difficulty-preview-card'
     card.setAttribute('data-difficulty-preview', preview.id)
-    card.style.cssText = `
-      min-width: 0;
-      min-height: 44px;
-      padding: 8px;
-      background: var(--tc-surface);
-      border: 3px solid var(--tc-ink-black);
-      border-radius: 4px;
-      box-shadow: 0 4px 0 0 var(--tc-ink-black);
-      cursor: pointer;
-      font-family: inherit;
-      text-align: center;
-    `
     card.addEventListener('click', () => {
       this.setSliderValue(preview.sliderValue)
     })
@@ -276,54 +227,24 @@ export class DifficultyPicker extends View {
     canvas.width = 96
     canvas.height = 96
     canvas.setAttribute('aria-hidden', 'true')
-    canvas.style.cssText = `
-      width: 100%;
-      aspect-ratio: 1;
-      display: block;
-      background: var(--tc-bg-alt);
-      border: 2px solid rgba(31,46,74,0.16);
-      image-rendering: pixelated;
-      margin-bottom: 8px;
-    `
+    canvas.className = 'difficulty-preview-canvas'
     this.previewCanvases.push({ canvas, gridSize: preview.settings.gridSize })
     card.appendChild(canvas)
 
     const label = document.createElement('div')
-    label.style.cssText = `
-      font-family: var(--tc-font-display);
-      font-size: 12px;
-      letter-spacing: 1px;
-      color: var(--tc-ink);
-    `
+    label.className = 'difficulty-preview-label'
     label.textContent = preview.label
     card.appendChild(label)
 
     const meta = document.createElement('div')
-    meta.style.cssText = `
-      margin-top: 5px;
-      font-family: var(--tc-font-display);
-      font-size: 10px;
-      line-height: 1.45;
-      color: var(--tc-ink-soft);
-      letter-spacing: 0.5px;
-    `
+    meta.className = 'difficulty-preview-meta'
     meta.textContent = `${preview.settings.gridSize}x${preview.settings.gridSize} - ${preview.estimatedMinutes}m`
     card.appendChild(meta)
 
     if (preview.tinyCells) {
       const warning = document.createElement('div')
       warning.setAttribute('data-difficulty-warning', 'tiny-cells')
-      warning.style.cssText = `
-        margin-top: 6px;
-        padding: 4px 3px;
-        background: #fef3c7;
-        border: 2px solid #92400e;
-        border-radius: 3px;
-        font-family: var(--tc-font-display);
-        font-size: 9px;
-        color: #92400e;
-        letter-spacing: 0.5px;
-      `
+      warning.className = 'difficulty-preview-warning'
       warning.textContent = 'TINY CELLS'
       card.appendChild(warning)
     }
@@ -335,28 +256,14 @@ export class DifficultyPicker extends View {
   private makeStat(label: string, id: string): HTMLElement {
     const container = document.createElement('div')
     container.className = 'diff-stat'
-    container.style.cssText = 'text-align: center;'
 
     const value = document.createElement('div')
     value.className = 'diff-stat__value'
     value.id = id
-    value.style.cssText = `
-      font-family: var(--tc-font-display);
-      font-size: 22px;
-      color: var(--tc-ink);
-      letter-spacing: 1px;
-    `
-    value.textContent = '—'
+    value.textContent = '-'
 
     const labelEl = document.createElement('div')
     labelEl.className = 'diff-stat__label'
-    labelEl.style.cssText = `
-      font-family: var(--tc-font-display);
-      font-size: 10px;
-      color: var(--tc-ink-soft);
-      margin-top: 6px;
-      letter-spacing: 1px;
-    `
     labelEl.textContent = label
 
     container.appendChild(value)
@@ -389,9 +296,6 @@ export class DifficultyPicker extends View {
 
     for (const card of this.previewCards) {
       const selected = card === best
-      card.element.style.background = selected ? 'var(--tc-primary-soft)' : 'var(--tc-surface)'
-      card.element.style.transform = selected ? 'translateY(2px)' : 'translateY(0)'
-      card.element.style.boxShadow = selected ? '0 2px 0 0 var(--tc-ink-black)' : '0 4px 0 0 var(--tc-ink-black)'
       card.element.setAttribute('aria-pressed', String(selected))
     }
   }
@@ -449,7 +353,7 @@ export class DifficultyPicker extends View {
     }
     if (!sampleCtx) return
 
-    sampleCtx.fillStyle = '#fff'
+    sampleCtx.fillStyle = 'white'
     sampleCtx.fillRect(0, 0, gridSize, gridSize)
     drawImageFit(sampleCtx, source, 0, 0, gridSize, gridSize, this.imageFit)
 
@@ -590,7 +494,7 @@ export class DifficultyPicker extends View {
       console.error('Conversion failed:', err)
       this.showToast(this.storageErrorMessage(err))
       if (this.startBtn) {
-        this.startBtn.textContent = '▶ START!'
+        this.startBtn.textContent = 'START!'
         this.startBtn.disabled = false
       }
     }
@@ -618,22 +522,7 @@ export class DifficultyPicker extends View {
   }
 
   private showToast(message: string): void {
-    const toast = document.createElement('div')
-    toast.textContent = message
-    toast.style.cssText = `
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--tc-ink-black);
-      color: white;
-      padding: 12px 20px;
-      border-radius: 8px;
-      font-size: 14px;
-      z-index: 999;
-      max-width: 90vw;
-      text-align: center;
-    `
+    const toast = createToast(message)
     document.body.appendChild(toast)
     setTimeout(() => toast.remove(), 3500)
   }

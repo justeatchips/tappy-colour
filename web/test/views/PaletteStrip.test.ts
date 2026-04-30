@@ -55,9 +55,9 @@ describe('PaletteStrip selection targets', () => {
     expect(entries).toHaveLength(3)
     expect(swatches).toHaveLength(3)
     expect(selected?.getAttribute('aria-current')).toBe('true')
-    expect(selected?.style.boxShadow).toContain('0 0 0 4px')
-    expect(selectedSwatch?.style.boxShadow).toContain('0 0 0 6px')
-    expect(selectedNumber?.style.background).toBe('rgb(17, 24, 39)')
+    expect(selected?.classList.contains('palette-entry')).toBe(true)
+    expect(selectedSwatch?.classList.contains('palette-swatch')).toBe(true)
+    expect(selectedNumber?.classList.contains('palette-number')).toBe(true)
     expect(unselected?.getAttribute('aria-current')).toBeNull()
   })
 

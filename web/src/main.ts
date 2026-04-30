@@ -2,6 +2,7 @@ import './styles/global.css'
 import { injectFonts } from './util/fonts'
 import { Router } from './router'
 import { ArtworkStore } from './model/ArtworkStore'
+import { createToast } from './ui/pixel'
 
 injectFonts()
 
@@ -10,22 +11,7 @@ const store = new ArtworkStore()
 
 window.addEventListener('tappy-storage-error', (event) => {
   const detail = (event as CustomEvent<{ message?: string }>).detail
-  const toast = document.createElement('div')
-  toast.textContent = detail?.message ?? 'Could not save your latest progress.'
-  toast.style.cssText = `
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--tc-ink-black);
-    color: white;
-    padding: 12px 20px;
-    border-radius: 8px;
-    font-size: 14px;
-    z-index: 999;
-    max-width: 90vw;
-    text-align: center;
-  `
+  const toast = createToast(detail?.message ?? 'Could not save your latest progress.')
   document.body.appendChild(toast)
   setTimeout(() => toast.remove(), 3500)
 })

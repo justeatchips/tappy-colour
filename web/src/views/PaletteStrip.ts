@@ -10,15 +10,6 @@ export class PaletteStrip {
   constructor(private session: PaintingSession) {
     this.el = document.createElement('div')
     this.el.className = 'palette-strip'
-    this.el.style.cssText = `
-      height: 80px;
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border-top: 1px solid #e5e7eb;
-      overflow-x: auto;
-      overflow-y: hidden;
-    `
   }
 
   get element(): HTMLElement {
@@ -26,21 +17,6 @@ export class PaletteStrip {
   }
 
   mount(): void {
-    // Inject pulse keyframe once
-    if (!document.getElementById('palette-strip-styles')) {
-      const style = document.createElement('style')
-      style.id = 'palette-strip-styles'
-      style.textContent = `
-        @keyframes swatch-pulse {
-          0%   { transform: scale(1); }
-          40%  { transform: scale(1.18); }
-          100% { transform: scale(1); }
-        }
-        .swatch-pulse { animation: swatch-pulse 0.5s ease-out; }
-      `
-      document.head.appendChild(style)
-    }
-
     const unsubChange = this.session.on('change', (eventType) => {
       if (eventType === 'selectionChanged') {
         this.updateSelection(true)
@@ -67,115 +43,45 @@ export class PaletteStrip {
     const palette = this.session.palette
 
     const container = document.createElement('div')
-    container.style.cssText = `
-      display: flex;
-      gap: 8px;
-      padding: 8px;
-      min-width: max-content;
-    `
+    container.className = 'palette-strip__list'
 
     for (let i = 0; i < palette.colours.length; i++) {
       const entry = document.createElement('button')
       entry.type = 'button'
+      entry.className = 'palette-entry'
       entry.dataset.paletteEntry = String(i)
       entry.setAttribute('aria-label', `Colour ${i + 1}`)
-      entry.style.cssText = `
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 8px;
-        min-width: 64px;
-        cursor: pointer;
-        border-radius: 8px;
-        border: 3px solid transparent;
-        box-sizing: border-box;
-        transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
-        font-family: inherit;
-      `
 
-      entry.addEventListener('mouseover', () => {
-        if (i !== this.session.selectedPaletteIndex) {
-          entry.style.background = 'rgba(0, 0, 0, 0.05)'
-        }
-      })
-
-      entry.addEventListener('mouseout', () => {
-        if (i !== this.session.selectedPaletteIndex) {
-          entry.style.background = 'transparent'
-        }
-      })
-
-      // Swatch
       const swatch = document.createElement('div')
+      swatch.className = 'palette-swatch'
       swatch.dataset.paletteSwatch = String(i)
-      swatch.style.cssText = `
-        width: 44px;
-        height: 44px;
-        border-radius: 8px;
-        background: ${palette.cssString(i)};
-        position: relative;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      `
+      swatch.style.background = palette.cssString(i)
 
       const paintedCount = this.session.paintedCells(i)
       const totalCount = this.session.totalCells(i)
 
-      // Checkmark if all painted
       if (paintedCount === totalCount && totalCount > 0) {
         const checkmark = document.createElement('div')
-        checkmark.style.cssText = `
-          position: absolute;
-          top: -4px;
-          right: -4px;
-          width: 24px;
-          height: 24px;
-          background: #10b981;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: white;
-          font-size: 14px;
-          font-weight: bold;
-        `
-        checkmark.textContent = '✓'
+        checkmark.className = 'palette-swatch__check'
+        checkmark.textContent = 'OK'
         swatch.appendChild(checkmark)
       }
 
       entry.appendChild(swatch)
 
-      // Number
       const numberEl = document.createElement('div')
+      numberEl.className = 'palette-number'
       numberEl.dataset.paletteNumber = String(i)
-      numberEl.style.cssText = `
-        font-size: 14px;
-        font-weight: bold;
-        color: #1f2937;
-        margin-top: 4px;
-        min-width: 28px;
-        min-height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 999px;
-      `
       numberEl.textContent = (i + 1).toString()
       entry.appendChild(numberEl)
 
-      // Progress
       const progressEl = document.createElement('div')
+      progressEl.className = 'palette-progress'
       progressEl.dataset.paletteProgress = String(i)
-      progressEl.style.cssText = `
-        font-size: 12px;
-        color: #6b7280;
-        margin-top: 2px;
-      `
       progressEl.textContent = `${paintedCount}/${totalCount}`
       entry.appendChild(progressEl)
 
-      // Tap selects; long-press (500ms) opens colour picker
       this.attachEntryHandlers(entry, i)
-
       container.appendChild(entry)
     }
 
@@ -258,41 +164,17 @@ export class PaletteStrip {
     const entries = this.el.querySelectorAll<HTMLElement>('[data-palette-entry]')
     entries.forEach((entry, index) => {
       const swatch = entry.querySelector<HTMLElement>('[data-palette-swatch]')
-      const number = entry.querySelector<HTMLElement>('[data-palette-number]')
-      const progress = entry.querySelector<HTMLElement>('[data-palette-progress]')
 
       if (index === this.session.selectedPaletteIndex) {
         entry.setAttribute('aria-current', 'true')
-        entry.style.background = '#fef3c7'
-        entry.style.borderColor = '#111827'
-        entry.style.boxShadow = '0 0 0 4px #facc15, 0 5px 0 0 #111827'
-        entry.style.transform = 'translateY(-2px)'
-        if (swatch) swatch.style.boxShadow = '0 0 0 3px #fff, 0 0 0 6px #111827'
-        if (number) {
-          number.style.background = '#111827'
-          number.style.color = '#fff'
-        }
-        if (progress) progress.style.color = '#111827'
-        if (pulse) {
-          if (swatch) {
-            swatch.classList.remove('swatch-pulse')
-            void swatch.offsetWidth // force reflow to restart animation
-            swatch.classList.add('swatch-pulse')
-            swatch.addEventListener('animationend', () => swatch.classList.remove('swatch-pulse'), { once: true })
-          }
+        if (pulse && swatch) {
+          swatch.classList.remove('swatch-pulse')
+          void swatch.offsetWidth
+          swatch.classList.add('swatch-pulse')
+          swatch.addEventListener('animationend', () => swatch.classList.remove('swatch-pulse'), { once: true })
         }
       } else {
         entry.removeAttribute('aria-current')
-        entry.style.background = 'transparent'
-        entry.style.borderColor = 'transparent'
-        entry.style.boxShadow = 'none'
-        entry.style.transform = 'translateY(0)'
-        if (swatch) swatch.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)'
-        if (number) {
-          number.style.background = 'transparent'
-          number.style.color = '#1f2937'
-        }
-        if (progress) progress.style.color = '#6b7280'
       }
     })
 
