@@ -19,6 +19,7 @@ Current milestone handoff: [M2_SPEC.md](M2_SPEC.md)
 
 - The core photo-to-puzzle-to-paint loop is local and offline-first.
 - Photos never leave the device for conversion.
+- Child profile settings are persisted in IndexedDB; localStorage is only a fast cache.
 - Search is parent-gated, off by default, and visibly unavailable offline.
 - The default child path should stay simple: choose source, choose sensible difficulty, paint.
 - Do not expose high-resolution experiments in the default path until kid testing proves they help.

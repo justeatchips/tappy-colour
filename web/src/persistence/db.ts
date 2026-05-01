@@ -26,12 +26,21 @@ export interface ArtworkRecord {
   selectedPaletteIndex?: number | null
 }
 
+export interface ProfileRecord {
+  id: string
+  displayName: string
+  settingsJson: string
+  createdAt: number
+  lastModifiedAt: number
+  schemaVersion: number
+}
+
 let dbPromise: Promise<IDBPDatabase> | null = null
 
 export function getDB(): Promise<IDBPDatabase> {
   if (dbPromise) return dbPromise
 
-  dbPromise = openDB('tappy-colour', 2, {
+  dbPromise = openDB('tappy-colour', 3, {
     upgrade(db, oldVersion, _newVersion, tx) {
       if (oldVersion < 1) {
         const store = db.createObjectStore('artworks', { keyPath: 'id' })
@@ -58,6 +67,9 @@ export function getDB(): Promise<IDBPDatabase> {
           }
         })()
       }
+      if (oldVersion < 3 && !db.objectStoreNames.contains('profiles')) {
+        db.createObjectStore('profiles', { keyPath: 'id' })
+      }
     },
   })
 
@@ -65,7 +77,8 @@ export function getDB(): Promise<IDBPDatabase> {
 }
 
 // Reset for testing only — allows multiple getDB() calls in tests with fresh state
-export function resetDBForTesting(): void {
-  void dbPromise?.then(db => db.close()).catch(() => {})
+export async function resetDBForTesting(): Promise<void> {
+  const existing = dbPromise
   dbPromise = null
+  await existing?.then(db => db.close()).catch(() => {})
 }

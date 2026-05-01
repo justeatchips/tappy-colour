@@ -15,10 +15,13 @@ const { UserSettings } = await import('../../src/model/UserSettings')
 beforeEach(() => {
   // Reset storage and reload defaults between tests
   localStorage.clear()
+  UserSettings.resetForTesting()
   UserSettings.update({
     soundEnabled: true,
     defaultSliderValue: 0.2,
     searchEnabled: false,
+    autoFillEnabled: true,
+    mascotId: null,
     pin: null,
   })
 })

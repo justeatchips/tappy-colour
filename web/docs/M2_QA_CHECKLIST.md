@@ -80,6 +80,8 @@ Use this checklist before calling M2 shippable. Run it on the target iPad/tablet
 
 ## Parent Trust
 
+- Change mascot/search/default difficulty, reload, update the app, and verify the same profile settings remain.
+- Clear only localStorage in dev tools, reload, and verify profile settings restore from IndexedDB.
 - Search is off by default.
 - Direct `#/search` navigation redirects when search is disabled.
 - Direct `#/search` navigation redirects while offline.

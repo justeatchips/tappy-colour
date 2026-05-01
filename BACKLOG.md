@@ -10,6 +10,17 @@ meaningful picture without adult help.
 
 ## P1
 
+### Persist the child's profile across app improvements
+
+- Status: Done
+- Source: Urgent user report on 2026-05-01
+- Area: `web/src/model/UserSettings.ts`, `web/src/model/ProfileStore.ts`, `web/src/persistence/db.ts`, `web/src/main.ts`, profile regression tests
+- Issue: A distraught user reported that after an app change their child profile appeared gone: photos gone, mascot changed, and search access reset.
+- Issue: Mascot/search/default settings were only stored in localStorage, making the child's identity fragile compared with the IndexedDB artwork store.
+- Outcome: Create a durable default child profile in IndexedDB and treat localStorage as a fast cache only.
+- Outcome: Hydrate settings from the durable profile before routing, and write profile updates through to IndexedDB.
+- Completed: Added an IndexedDB `profiles` store, a default profile persistence layer, startup hydration, write-through settings updates, and regression tests for localStorage loss and profile update survival.
+
 ### Simplify the M2 conversion preview for the child default path
 
 - Status: Not started

@@ -26,6 +26,7 @@ This milestone is not about adding every available source or tool. It is about m
 - Saved gallery with starter pictures, imported/camera pictures, thumbnails, progress, completion state, and no duplicate starter cards.
 - Exact resume for grid, palette, selected colour, selected tool, and completion state.
 - Parent-gated picture management for deletion.
+- Durable child profile persistence for mascot, search access, adult gate, sound, auto-fill, and default difficulty.
 - Storage-quota and failed-import recovery messaging.
 - Offline clarity: local features work offline, search is visibly unavailable offline.
 
@@ -91,6 +92,7 @@ This milestone is not about adding every available source or tool. It is about m
 
 ### Parent Trust
 
+- The child's profile settings survive app updates through IndexedDB-backed durable profile storage.
 - Search remains off by default.
 - Direct `#/search` navigation respects parent setting and online state.
 - Home explains search-disabled/offline state visibly.

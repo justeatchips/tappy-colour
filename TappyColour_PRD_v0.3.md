@@ -6,11 +6,13 @@
 
 *A colour-by-numbers web PWA for kids, built around personal photos, offline play, and parent trust*
 
-Version 0.3.1 | Draft | May 2026
+Version 0.3.2 | Draft | May 2026
 
 ---
 
 ## Change Log
+
+**v0.3.2** - Added durable child profile persistence as the top trust requirement. Child identity/settings such as mascot, search access, sound, auto-fill, adult gate, and default difficulty must survive app improvements through IndexedDB-backed profile storage, with localStorage treated only as a fast cache.
 
 **v0.3.1** - Kept hex-circle puzzle mode in the M2 creation path because it is a specific child-user request. It should remain simple, legible, and secondary to starting the puzzle.
 
@@ -77,6 +79,7 @@ Parents set up the app, approve search, manage storage/deletion, and decide whet
 
 Parent requirements:
 
+- The child's profile survives app updates and is not reset by routine product changes.
 - Photos never leave the device for conversion.
 - Search is off by default and visibly parent-controlled.
 - Destructive actions are parent-gated or strongly confirmed.
@@ -194,6 +197,9 @@ Painting requirements:
 
 ### 6.7 Save, Resume, and Local Persistence
 
+- Child profile settings are persisted durably in IndexedDB and mirrored to localStorage as a fast cache.
+- Startup hydrates the local settings cache from the durable profile before routing.
+- The durable profile includes mascot, search access, sound, auto-fill, default difficulty, and adult gate state.
 - Save progress after every meaningful action, debounced where appropriate.
 - Flush pending saves on page hide/visibility change.
 - Resume restores:

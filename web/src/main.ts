@@ -2,6 +2,7 @@ import './styles/global.css'
 import { injectFonts } from './util/fonts'
 import { Router } from './router'
 import { ArtworkStore } from './model/ArtworkStore'
+import { UserSettings } from './model/UserSettings'
 import { createToast } from './ui/pixel'
 
 injectFonts()
@@ -24,5 +25,11 @@ if ('serviceWorker' in navigator) {
   })
 }
 
-const router = new Router(app, store)
-router.start()
+UserSettings.hydrateFromDurableProfile()
+  .catch(err => {
+    console.warn('Profile hydration failed:', err)
+  })
+  .finally(() => {
+    const router = new Router(app, store)
+    router.start()
+  })

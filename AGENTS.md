@@ -52,6 +52,7 @@ M2 ships:
 - Photo import and camera capture/fallback.
 - Conversion preview with sensible default difficulty.
 - Saved gallery with starter pictures, thumbnails, progress, completion state, and exact resume.
+- Durable child profile persistence for mascot, search access, adult gate, sound, auto-fill, and default difficulty.
 - Parent-gated picture management and storage recovery.
 - Clear offline/search-disabled states.
 
@@ -140,6 +141,7 @@ Command: `npm run deploy` (builds and pushes via `gh-pages`).
 
 - **No framework.** The web app uses vanilla ES modules and Canvas. Don't reach for React, Vue, etc.
 - **No telemetry, no accounts.** Photos never leave the device.
+- **Profiles persist.** Child identity/settings must survive app improvements; localStorage is only a cache for the IndexedDB-backed profile.
 - **Offline first.** Every feature except safe search must work without an internet connection.
 - **Search is parent-gated.** Keep it disabled by default and visibly unavailable offline.
 - **60fps painting.** Canvas rendering on an 80×80 grid must stay smooth; profile before reaching for optimisations.
