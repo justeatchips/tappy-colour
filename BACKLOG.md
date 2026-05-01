@@ -17,8 +17,9 @@ meaningful picture without adult help.
 - Area: `web/src/views/DifficultyPicker.ts`, `web/src/styles/global.css`, difficulty tests
 - Issue: The current preview exposes useful but potentially distracting controls: difficulty cards, slider, fit/fill, shape selection, stats, warnings, and start.
 - Issue: M2 should optimise for a child quickly starting a personal photo puzzle, not for showcasing every conversion option.
+- Issue: `HEX CIRCLE` is a specific child-user request, so it should stay available rather than being hidden as an experiment.
 - Outcome: Keep the preview's useful confidence-building elements, but hide or defer controls that do not help a 6-10 year old start successfully.
-- Outcome: `HEX CIRCLE` should be removed from the default child path or hidden behind an internal/experimental route until kid testing proves it helps.
+- Outcome: Keep `HEX CIRCLE` in the default creation path, make it clearly understandable as a shape option, and ensure it does not crowd out the Start action.
 
 ### Make Search disabled/offline state visible on Home
 

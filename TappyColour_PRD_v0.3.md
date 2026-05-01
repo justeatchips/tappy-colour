@@ -1,4 +1,4 @@
-# Tappy Colour - PRD v0.3
+# Tappy Colour - PRD v0.3.1
 
 **Product Requirements Document**
 
@@ -6,13 +6,15 @@
 
 *A colour-by-numbers web PWA for kids, built around personal photos, offline play, and parent trust*
 
-Version 0.3 | Draft | May 2026
+Version 0.3.1 | Draft | May 2026
 
 ---
 
 ## Change Log
 
-**v0.3** - Recentered the product around the active web PWA. Replaced native iOS requirements with browser/PWA requirements. Made "one child can create and finish one personally meaningful picture without adult help" the north-star flow. Tightened M2 around local photo/camera sources, gallery confidence, offline behavior, and storage recovery. Moved hex-circle puzzles, super-high-resolution mode, broad export/share, and advanced creation options to backlog until kid testing proves demand. Clarified that safe search exists as scaffolded code but remains parent-gated, default-off, and not part of the M2 core.
+**v0.3.1** - Kept hex-circle puzzle mode in the M2 creation path because it is a specific child-user request. It should remain simple, legible, and secondary to starting the puzzle.
+
+**v0.3** - Recentered the product around the active web PWA. Replaced native iOS requirements with browser/PWA requirements. Made "one child can create and finish one personally meaningful picture without adult help" the north-star flow. Tightened M2 around local photo/camera sources, gallery confidence, offline behavior, and storage recovery. Moved super-high-resolution mode, broad export/share, and advanced creation options to backlog until kid testing proves demand. Clarified that safe search exists as scaffolded code but remains parent-gated, default-off, and not part of the M2 core.
 
 **v0.2** - Renamed to Tappy Colour. Difficulty progression made free-flowing rather than tiered. Added fill-by-number, bucket fill, suggested palettes, and palette editing. Export/share moved to backlog. Added Testing & Development section.
 
@@ -167,7 +169,8 @@ Search is a later milestone feature even though implementation scaffolding exist
   - a simple start action
   - fit/fill crop choice only if understandable at a glance
 - The preview may show estimated completion time and tiny-cell warnings.
-- Advanced shape modes such as hex-circle are not part of the default child path.
+- Hex-circle is available as a child-requested shape option. It should remain visually understandable and secondary to starting the puzzle.
+- Additional advanced shape modes are not part of the default child path.
 - Conversion happens locally in the browser, preferably off the main thread.
 
 ### 6.6 Painting Experience
@@ -285,6 +288,7 @@ M2 is complete when:
 - Photo import happy path.
 - Camera capture or graceful browser fallback.
 - Conversion preview with sensible default difficulty.
+- Hex-circle puzzle shape as a child-requested option.
 - Optional fit/fill crop choice if it stays visually obvious.
 - Saved gallery with thumbnails, starter pictures, progress, completion state, and no duplicate starter cards.
 - Exact resume.
@@ -295,7 +299,6 @@ M2 is complete when:
 ### 8.3 M2 Defers
 
 - Search as a shippable child-facing feature.
-- Hex-circle puzzle mode.
 - Super-high-resolution puzzle mode.
 - Bulk import as a marquee feature.
 - Export/share flows.
@@ -403,9 +406,7 @@ Because this is a personal-use app with no telemetry, success is observed direct
 
 ### Explicitly Parked
 
-- Hex-circle puzzle mode as a default creation option.
 - 100x100+ or 500x500 puzzle creation.
 - AI-generated imagery.
 - Accounts/cloud sync/social features.
 - Any monetisation.
-

@@ -44,7 +44,8 @@ Use this checklist before calling M2 shippable. Run it on the target iPad/tablet
 - The child can start with the default without understanding every control.
 - Preview image is recognisable enough to avoid surprise.
 - Fit/fill choice, if visible, is understandable from the preview.
-- Experimental shape/high-resolution controls are absent from the default M2 path.
+- HEX CIRCLE remains available as a child-requested shape option and is understandable from the preview.
+- High-resolution controls are absent from the default M2 path.
 - Conversion failure leaves the child with a clear recovery path.
 
 ## Painting and Resume
@@ -84,4 +85,3 @@ Use this checklist before calling M2 shippable. Run it on the target iPad/tablet
 - Direct `#/search` navigation redirects while offline.
 - Search attribution remains available for search-sourced puzzles when search is enabled for testing.
 - No photo source is uploaded during local import/camera conversion.
-

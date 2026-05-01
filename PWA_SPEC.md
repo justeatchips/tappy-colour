@@ -21,7 +21,8 @@ Current milestone handoff: [M2_SPEC.md](M2_SPEC.md)
 - Photos never leave the device for conversion.
 - Search is parent-gated, off by default, and visibly unavailable offline.
 - The default child path should stay simple: choose source, choose sensible difficulty, paint.
-- Do not expose high-resolution or alternate-shape experiments in the default path until kid testing proves they help.
+- Do not expose high-resolution experiments in the default path until kid testing proves they help.
+- Hex-circle is a child-requested shape option and may stay in the default creation flow if it remains simple, legible, and secondary to starting the puzzle.
 
 ## Directory
 

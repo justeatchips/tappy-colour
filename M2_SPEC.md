@@ -22,6 +22,7 @@ This milestone is not about adding every available source or tool. It is about m
 - Camera capture using capture-enabled file input where supported, with file-picker fallback.
 - Conversion preview with easy default difficulty and simple visual preview.
 - Fit/fill framing if it stays visually obvious and does not slow the child down.
+- Hex-circle puzzle shape, because it is a specific child-user request. It should remain secondary to starting the puzzle and must stay understandable.
 - Saved gallery with starter pictures, imported/camera pictures, thumbnails, progress, completion state, and no duplicate starter cards.
 - Exact resume for grid, palette, selected colour, selected tool, and completion state.
 - Parent-gated picture management for deletion.
@@ -31,7 +32,6 @@ This milestone is not about adding every available source or tool. It is about m
 ### Explicitly Deferred
 
 - Search as a shippable child-facing source.
-- Hex-circle puzzle mode in the default child creation path.
 - Super-high-resolution puzzle mode above 80x80.
 - Bulk import as a headline feature.
 - Export/share flows.
@@ -72,7 +72,8 @@ This milestone is not about adding every available source or tool. It is about m
 - Default difficulty comes from parent settings and starts easy by default.
 - Preview makes the output feel predictable enough for the child to start.
 - Any visible extra control must have a clear child-facing purpose.
-- Hex-circle and high-resolution controls are absent from the default M2 path unless deliberately hidden behind an internal flag.
+- Hex-circle remains available as a child-requested shape option.
+- High-resolution controls are absent from the default M2 path unless deliberately hidden behind an internal flag.
 
 ### Gallery and Resume
 
@@ -116,7 +117,7 @@ This milestone is not about adding every available source or tool. It is about m
 
 ### P1 - Simplify conversion preview for children
 
-- Decide whether `HEX CIRCLE` should be hidden or moved out of the default path.
+- Keep `HEX CIRCLE` available and verify that children understand it as a shape choice.
 - Keep `FILL/FIT` only if the preview makes the difference obvious.
 - Ensure default slider, preview cards, stats, and start action all agree.
 - Keep all controls at least 44px and readable on portrait tablet widths.
@@ -157,5 +158,4 @@ Search scaffolding may continue to exist in the codebase, but it should not pull
 
 Print sheets and source-photo compare can remain as implemented utility affordances, but they should not drive M2 acceptance. The child should be able to succeed without discovering them.
 
-High-resolution and alternate shape experiments should stay parked until the standard square 16x16-80x80 loop is validated with real child use.
-
+High-resolution experiments should stay parked until the standard 16x16-80x80 loop is validated with real child use. Hex-circle is no longer parked because it is a child-requested shape option; keep it simple and test it in the normal conversion flow.

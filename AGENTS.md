@@ -57,9 +57,12 @@ M2 ships:
 
 M2 defers:
 - Search as a shippable child-facing feature.
-- Hex-circle puzzle mode and super-high-resolution puzzle mode.
+- Super-high-resolution puzzle mode.
 - Bulk import as a marquee feature.
 - Export/share and print as primary child-facing flows.
+
+M2 keeps:
+- Hex-circle puzzle mode, because it is a specific child-user request. Keep it understandable and avoid letting it crowd the start flow.
 
 Milestone roadmap from the PRD:
 
@@ -142,4 +145,4 @@ Command: `npm run deploy` (builds and pushes via `gh-pages`).
 - **60fps painting.** Canvas rendering on an 80×80 grid must stay smooth; profile before reaching for optimisations.
 - **44pt touch targets.** Apple HIG minimum — important for small fingers.
 - **Kid-readable UI.** Prefer icons and numbers over text. Minimal copy.
-- **Default path over configuration.** Advanced controls like hex-circle or high-resolution modes should not appear in the child default flow unless kid testing proves they help.
+- **Default path over configuration.** High-resolution modes should not appear in the child default flow unless kid testing proves they help. Hex-circle is an explicit child-user request and may remain as a simple, understandable shape option.
