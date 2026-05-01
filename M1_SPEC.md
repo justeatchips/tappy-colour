@@ -2,6 +2,11 @@
 
 Version 1.0 | April 2026 | For developer agent handoff
 
+> Status note, May 2026: this is a legacy native-iOS handoff and is no longer
+> the canonical build direction. The active product is the web PWA in `web/`.
+> Use `TappyColour_PRD_v0.3.md`, `M2_SPEC.md`, `PWA_SPEC.md`, and `AGENTS.md`
+> for current product and implementation direction.
+
 ---
 
 ## 1. Project Setup

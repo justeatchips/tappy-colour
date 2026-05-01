@@ -2,12 +2,15 @@
 
 ## Project overview
 
-Tappy Colour is an offline-first colour-by-numbers app for kids (6–10 years old). It converts any photo into a pixel-art grid puzzle that kids paint square by square. The core colouring loop works entirely offline; internet is only used for safe image search (a later milestone).
+Tappy Colour is an offline-first colour-by-numbers web PWA for kids (6–10 years old). It converts starter pictures, local photos, and camera captures into pixel-art grid puzzles that kids paint square by square. The core colouring loop works entirely offline; internet is only used for parent-enabled safe image search.
 
 **This file covers the web PWA only.** The native iOS app in `TappyColour/` is parked for now.
 
-Full product requirements: [TappyColour_PRD_v0.2.md](TappyColour_PRD_v0.2.md)  
-M1 technical spec: [M1_SPEC.md](M1_SPEC.md)
+Current product requirements: [TappyColour_PRD_v0.3.md](TappyColour_PRD_v0.3.md)  
+Current M2 handoff: [M2_SPEC.md](M2_SPEC.md)  
+Legacy M1/native handoff: [M1_SPEC.md](M1_SPEC.md)
+
+North-star product loop: **a child can make and finish one personally meaningful picture without adult help.** Every new feature should help the child start, keep going, finish, or proudly revisit a picture. Features that mainly express technical possibility belong in the backlog.
 
 ---
 
@@ -39,22 +42,35 @@ Always run `npm run build` before reporting a task complete to catch type errors
 
 ---
 
-## Current milestone: M2 — Local sources
+## Current milestone: M2 — Local personal sources
 
 **M1** (core engine) is done: conversion pipeline, tap/drag painting, save/resume, difficulty slider.
 
-**M2 goal:** Photo library import, camera capture, and a gallery of saved pieces.
+**M2 goal:** A child can make a puzzle from a local photo or camera capture, resume it from a trustworthy gallery, and complete it offline.
+
+M2 ships:
+- Photo import and camera capture/fallback.
+- Conversion preview with sensible default difficulty.
+- Saved gallery with starter pictures, thumbnails, progress, completion state, and exact resume.
+- Parent-gated picture management and storage recovery.
+- Clear offline/search-disabled states.
+
+M2 defers:
+- Search as a shippable child-facing feature.
+- Hex-circle puzzle mode and super-high-resolution puzzle mode.
+- Bulk import as a marquee feature.
+- Export/share and print as primary child-facing flows.
 
 Milestone roadmap from the PRD:
 
 | Phase | Focus | Status |
 |-------|-------|--------|
 | M1 | Core engine | Done |
-| M2 | Local sources | **In progress** |
-| M3 | Painting tools & palette | Upcoming |
-| M4 | Safe search | Upcoming |
-| M5 | Polish | Upcoming |
-| M6 | Family testing | Upcoming |
+| M2 | Local personal sources | **In progress** |
+| M3 | Painting confidence | Upcoming |
+| M4 | Safe search beta | Upcoming |
+| M5 | Trust & polish | Upcoming |
+| M6 | Family readiness | Upcoming |
 
 ---
 
@@ -122,6 +138,8 @@ Command: `npm run deploy` (builds and pushes via `gh-pages`).
 - **No framework.** The web app uses vanilla ES modules and Canvas. Don't reach for React, Vue, etc.
 - **No telemetry, no accounts.** Photos never leave the device.
 - **Offline first.** Every feature except safe search must work without an internet connection.
+- **Search is parent-gated.** Keep it disabled by default and visibly unavailable offline.
 - **60fps painting.** Canvas rendering on an 80×80 grid must stay smooth; profile before reaching for optimisations.
 - **44pt touch targets.** Apple HIG minimum — important for small fingers.
 - **Kid-readable UI.** Prefer icons and numbers over text. Minimal copy.
+- **Default path over configuration.** Advanced controls like hex-circle or high-resolution modes should not appear in the child default flow unless kid testing proves they help.
