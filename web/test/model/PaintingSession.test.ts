@@ -1,3 +1,5 @@
+// @vitest-environment jsdom
+
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { PaintingSession } from '../../src/model/PaintingSession'
 import { PixelGrid } from '../../src/engine/PixelGrid'
@@ -288,5 +290,25 @@ describe('PaintingSession - hints', () => {
     session.requestHint()
 
     expect(events).not.toContain('hintRequested')
+  })
+})
+
+describe('PaintingSession - storage recovery', () => {
+  it('surfaces progress save failures without undoing the in-memory paint', async () => {
+    const err = new DOMException('full', 'QuotaExceededError')
+    const store = { save: vi.fn().mockRejectedValue(err) } as unknown as ArtworkStore
+    const session = new PaintingSession(makeArtwork([0], 1, 1), store)
+    const storageEvents: Array<CustomEvent<{ message: string }>> = []
+    window.addEventListener(
+      'tappy-storage-error',
+      event => storageEvents.push(event as CustomEvent<{ message: string }>),
+      { once: true }
+    )
+
+    session.tap(0, 0)
+    await new Promise(resolve => setTimeout(resolve, 0))
+
+    expect(session.grid.cell(0, 0).painted).toBe(true)
+    expect(storageEvents[0]?.detail.message).toBe('Device storage is full. Delete some pictures in Settings, then try again.')
   })
 })

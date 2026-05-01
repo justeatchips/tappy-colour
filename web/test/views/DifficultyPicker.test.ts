@@ -67,6 +67,22 @@ describe('DifficultyPicker defaults', () => {
     expect(root.querySelector('#diff-stat-grid')?.textContent).toBe('16\u00d716')
   })
 
+  it('defers fine-tuning controls behind a More drawer', () => {
+    const root = document.createElement('div')
+    document.body.appendChild(root)
+    const screen = new DifficultyPicker(makeRouter(), makeStore(), 'starter', null)
+
+    screen.mount(root)
+
+    const moreControls = root.querySelector<HTMLDetailsElement>('.difficulty-more-controls')
+    expect(moreControls).toBeInstanceOf(HTMLDetailsElement)
+    expect(moreControls?.open).toBe(false)
+    expect(moreControls?.querySelector('#diff-slider')).toBeInstanceOf(HTMLInputElement)
+    expect(moreControls?.querySelector('#diff-stat-grid')).toBeInstanceOf(HTMLElement)
+    expect(root.querySelector<HTMLButtonElement>('[data-cell-shape="hexCircle"]')).toBeInstanceOf(HTMLButtonElement)
+    expect(root.querySelector<HTMLButtonElement>('#diff-start-btn')).toBeInstanceOf(HTMLButtonElement)
+  })
+
   it('offers fill and fit image framing options for conversion previews', () => {
     const root = document.createElement('div')
     document.body.appendChild(root)

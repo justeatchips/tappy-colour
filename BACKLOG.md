@@ -23,7 +23,7 @@ meaningful picture without adult help.
 
 ### Simplify the M2 conversion preview for the child default path
 
-- Status: Not started
+- Status: Done
 - Source: PRD v0.3
 - Area: `web/src/views/DifficultyPicker.ts`, `web/src/styles/global.css`, difficulty tests
 - Issue: The current preview exposes useful but potentially distracting controls: difficulty cards, slider, fit/fill, shape selection, stats, warnings, and start.
@@ -31,44 +31,49 @@ meaningful picture without adult help.
 - Issue: `HEX CIRCLE` is a specific child-user request, so it should stay available rather than being hidden as an experiment.
 - Outcome: Keep the preview's useful confidence-building elements, but hide or defer controls that do not help a 6-10 year old start successfully.
 - Outcome: Keep `HEX CIRCLE` in the default creation path, make it clearly understandable as a shape option, and ensure it does not crowd out the Start action.
+- Completed: Difficulty preview now keeps the child-facing preview cards, FILL/FIT, HEX CIRCLE, and START visible while moving the meter, slider, and stats into a closed MORE drawer by default.
 
 ### Make Search disabled/offline state visible on Home
 
-- Status: Not started
+- Status: Done
 - Source: PRD v0.3
 - Area: `web/src/views/HomeScreen.ts`, `web/src/util/searchAccess.ts`, Home/Search route tests
 - Issue: Home disables Search when parent-gated or offline, but the explanatory reason is mostly in `title`, which is not visible on touch devices.
 - Outcome: The Search tile visibly distinguishes "parent off" from "needs internet" while staying kid-readable.
 - Outcome: Direct `#/search` route protection remains in place.
+- Completed: Disabled Search now shows a visible PARENT OFF or NO INTERNET badge on Home while preserving the existing direct-route guard.
 
 ### Verify M2 photo and camera flows on target tablet browser
 
-- Status: Not started
+- Status: Ready for device QA
 - Source: PRD v0.3 / M2 spec
 - Area: manual QA, `web/src/util/imageImport.ts`, `web/src/views/HomeScreen.ts`
 - Issue: Camera capture behavior varies across iPad Safari, installed PWAs, desktop browsers, and Chromium browsers.
 - Outcome: Record actual behavior for Photos, Camera, cancellation, fallback, and large images on the target device.
 - Outcome: Fix any broken routing or messaging before treating M2 as shippable.
+- Completed: Added a target tablet capture log to `web/docs/M2_QA_CHECKLIST.md`; this item still requires a physical target-device pass before M2 is called shippable.
 
 ### Storage recovery should be part of the M2 happy path
 
-- Status: Not started
+- Status: Done
 - Source: PRD v0.3
 - Area: `web/src/model/ArtworkStore.ts`, `web/src/views/DifficultyPicker.ts`, `web/src/views/SettingsScreen.ts`
 - Issue: M2 stores thumbnails and source images locally, so storage pressure is a normal product risk, not an edge case.
 - Outcome: Quota/save failures are visible, friendly, and point parents to picture management.
 - Outcome: The in-memory puzzle should remain usable where possible even if the last save fails.
+- Completed: Progress-save failures now dispatch the same visible storage recovery event used by store-level save failures, while leaving the in-memory puzzle state intact.
 
 ## P2
 
 ### Add import queue guardrails
 
-- Status: Not started
+- Status: Done
 - Source: PRD v0.3
 - Area: `web/src/model/ImportStaging.ts`, `web/src/views/DifficultyPicker.ts`, `web/src/views/HomeScreen.ts`
 - Issue: Multiple selected photos are queued, but the child may not understand why another difficulty screen appears after conversion.
 - Outcome: Show queue count/progress or otherwise make the one-at-a-time flow explicit.
 - Outcome: Backing out clears queued imports predictably.
+- Completed: The import difficulty screen now shows how many more selected photos are waiting, and backing out clears the queued imports.
 
 ### Add an M2 manual QA checklist
 
@@ -92,11 +97,12 @@ meaningful picture without adult help.
 
 ### Reframe print as a parent utility, not a child-core feature
 
-- Status: Not started
+- Status: Done
 - Source: PRD v0.3
 - Area: `web/src/views/PuzzleContainer.ts`, `web/src/util/printSheet.ts`, docs
 - Issue: Print is useful, but M2 should not depend on children discovering or understanding it.
 - Outcome: Keep print available where it already works, but do not expand it until the local-source completion loop is validated.
+- Completed: PRD/M2 scope already treats print as deferred parent utility; no new print surface is added for M2, and the existing toolbar print affordance remains a utility only for untouched or completed puzzles.
 
 ## New backlog items from 2026-04-30
 

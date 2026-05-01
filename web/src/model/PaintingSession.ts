@@ -386,8 +386,18 @@ export class PaintingSession extends EventEmitter<{ change: PaintEventType }> {
   private saveToStore(): void {
     const artwork = this.toArtworkSnapshot()
 
-    this.store.save(artwork).catch(() => {
-      // Silently fail on save error
-    })
+    this.store.save(artwork).catch(err => this.notifyStorageError(err))
+  }
+
+  private notifyStorageError(err: unknown): void {
+    if (typeof window === 'undefined') return
+    window.dispatchEvent(new CustomEvent('tappy-storage-error', {
+      detail: {
+        error: err,
+        message: err instanceof DOMException && err.name === 'QuotaExceededError'
+          ? 'Device storage is full. Delete some pictures in Settings, then try again.'
+          : 'Could not save your latest progress.',
+      },
+    }))
   }
 }

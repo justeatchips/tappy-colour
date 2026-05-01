@@ -52,6 +52,8 @@ describe('HomeScreen search access', () => {
     screen.mount(root)
 
     expect(searchButton(root).disabled).toBe(true)
+    expect(root.querySelector('[data-search-state-label="PARENT OFF"]')).toBeInstanceOf(HTMLElement)
+    expect(searchButton(root).getAttribute('data-search-disabled-reason')).toBe('disabled')
   })
 
   it('disables search while offline even when parent search is on', () => {
@@ -63,6 +65,8 @@ describe('HomeScreen search access', () => {
     screen.mount(root)
 
     expect(searchButton(root).disabled).toBe(true)
+    expect(root.querySelector('[data-search-state-label="NO INTERNET"]')).toBeInstanceOf(HTMLElement)
+    expect(searchButton(root).getAttribute('data-search-disabled-reason')).toBe('offline')
   })
 
   it('enables search when parent search is on and the browser is online', () => {
@@ -73,5 +77,6 @@ describe('HomeScreen search access', () => {
     screen.mount(root)
 
     expect(searchButton(root).disabled).toBe(false)
+    expect(root.querySelector('[data-search-state-label]')).toBeNull()
   })
 })

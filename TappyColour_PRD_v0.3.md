@@ -1,4 +1,4 @@
-# Tappy Colour - PRD v0.3.1
+# Tappy Colour - PRD v0.3.3
 
 **Product Requirements Document**
 
@@ -6,11 +6,13 @@
 
 *A colour-by-numbers web PWA for kids, built around personal photos, offline play, and parent trust*
 
-Version 0.3.2 | Draft | May 2026
+Version 0.3.3 | Draft | May 2026
 
 ---
 
 ## Change Log
+
+**v0.3.3** - M2 backlog pass: simplified the conversion preview default path by deferring fine-tuning controls behind MORE, made Home's disabled Search state visible for parent-off/offline cases, added import-queue visibility, and clarified the target-device QA capture needed before M2 ships.
 
 **v0.3.2** - Added durable child profile persistence as the top trust requirement. Child identity/settings such as mascot, search access, sound, auto-fill, adult gate, and default difficulty must survive app improvements through IndexedDB-backed profile storage, with localStorage treated only as a fast cache.
 
@@ -167,6 +169,7 @@ Search is a later milestone feature even though implementation scaffolding exist
 - Difficulty maps continuously from 16x16 / 6 colours to 80x80 / 24 colours.
 - Default difficulty starts easy and may be parent-configured.
 - The preview should help the child avoid frustration, not become an expert editor.
+- Fine-tuning controls such as the slider, meter, and stats should stay behind MORE by default so START remains the obvious next action.
 - Required controls for M2:
   - difficulty slider or clearly tappable easy/medium/hard preview cards
   - a simple start action
@@ -387,9 +390,8 @@ Because this is a personal-use app with no telemetry, success is observed direct
 
 ### Near-Term Backlog
 
-- Simplify difficulty screen if kid testing shows hesitation.
-- Improve disabled Search state on Home with visible offline/parent-gated copy.
-- Add import queue progress or cap the visible flow to one photo at a time.
+- Run the target tablet capture log for Photos, Camera, cancellation, large images, installed PWA, and offline reload.
+- Watch whether children understand MORE, FILL/FIT, and HEX CIRCLE during the first M2 kid sessions.
 - Add friendlier storage-nearly-full guidance using browser storage estimates if useful.
 - Add a short post-M2 kid test script and friction template.
 

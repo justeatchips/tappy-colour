@@ -38,6 +38,18 @@ Use this checklist before calling M2 shippable. Run it on the target iPad/tablet
 - Captured image opens the conversion preview.
 - Captured image is not uploaded and is not saved outside the app by Tappy Colour.
 
+## Target Tablet Capture Log
+
+Record the actual result before calling this item done.
+
+| Device/browser | Install state | Photos | Camera | Cancel | Large image | Offline reload | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| iPad Safari | browser tab | TODO | TODO | TODO | TODO | TODO |  |
+| iPad Safari | installed PWA | TODO | TODO | TODO | TODO | TODO |  |
+| Desktop Chromium | browser tab | TODO | TODO | TODO | TODO | TODO |  |
+
+Mark Camera as one of: direct camera, file-picker fallback, blocked, broken.
+
 ## Conversion Preview
 
 - Default difficulty starts from parent setting.

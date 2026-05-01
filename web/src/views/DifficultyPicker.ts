@@ -65,9 +65,14 @@ export class DifficultyPicker extends View {
     topTitle.textContent = 'HOW HARD?'
     topBar.appendChild(topTitle)
 
-    const spacer = document.createElement('div')
-    spacer.className = 'difficulty-topbar__spacer'
-    topBar.appendChild(spacer)
+    const queueBadge = this.makeQueueBadge()
+    if (queueBadge) {
+      topBar.appendChild(queueBadge)
+    } else {
+      const spacer = document.createElement('div')
+      spacer.className = 'difficulty-topbar__spacer'
+      topBar.appendChild(spacer)
+    }
 
     container.appendChild(topBar)
 
@@ -82,16 +87,24 @@ export class DifficultyPicker extends View {
     leftCol.appendChild(this.makePreviewPanel(settings.autoFillEnabled))
     gridContainer.appendChild(leftCol)
 
-    // Right: meter + slider + stats
+    // Right: start action plus deferred fine-tuning controls.
     const rightCol = document.createElement('div')
     rightCol.className = 'difficulty-controls-col'
 
     const controlsPanel = createPanel('difficulty-panel')
 
+    const moreControls = document.createElement('details')
+    moreControls.className = 'difficulty-more-controls'
+
+    const moreSummary = document.createElement('summary')
+    moreSummary.className = 'difficulty-more-controls__summary'
+    moreSummary.textContent = 'MORE'
+    moreControls.appendChild(moreSummary)
+
     const meterLabel = document.createElement('div')
     meterLabel.className = 'difficulty-meter-label'
     meterLabel.textContent = 'DIFFICULTY METER'
-    controlsPanel.appendChild(meterLabel)
+    moreControls.appendChild(meterLabel)
 
     const meterContainer = document.createElement('div')
     meterContainer.id = 'diff-meter'
@@ -102,7 +115,7 @@ export class DifficultyPicker extends View {
     this.chickRow.update(this.sliderValue)
     meterContainer.appendChild(this.chickRow.element)
 
-    controlsPanel.appendChild(meterContainer)
+    moreControls.appendChild(meterContainer)
 
     const slider = document.createElement('input')
     slider.type = 'range'
@@ -117,7 +130,7 @@ export class DifficultyPicker extends View {
       this.setSliderValue((e.target as HTMLInputElement).valueAsNumber / 100)
     })
 
-    controlsPanel.appendChild(slider)
+    moreControls.appendChild(slider)
 
     // Stats row
     const statsRow = document.createElement('div')
@@ -130,8 +143,9 @@ export class DifficultyPicker extends View {
     statsRow.appendChild(gridStat)
     statsRow.appendChild(colorsStat)
     statsRow.appendChild(timeStat)
-    controlsPanel.appendChild(statsRow)
+    moreControls.appendChild(statsRow)
 
+    controlsPanel.appendChild(moreControls)
     rightCol.appendChild(controlsPanel)
 
     const startBtn = createPxButton({
@@ -196,6 +210,18 @@ export class DifficultyPicker extends View {
     this.updateFitButtons(panel)
     this.updateShapeButtons(panel)
     return panel
+  }
+
+  private makeQueueBadge(): HTMLElement | null {
+    if (!this.staged) return null
+    const remaining = ImportStaging.queuedCount()
+    if (remaining === 0) return null
+
+    const badge = document.createElement('div')
+    badge.className = 'difficulty-queue-badge'
+    badge.setAttribute('data-import-queue-badge', String(remaining))
+    badge.textContent = `${remaining} MORE PHOTO${remaining === 1 ? '' : 'S'}`
+    return badge
   }
 
   private makeFitButton(fit: ImageFit, label: string): HTMLButtonElement {

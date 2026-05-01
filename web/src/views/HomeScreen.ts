@@ -139,15 +139,17 @@ export class HomeScreen extends View {
     const cameraBtn = this.makeActionBtn(CAMERA_ICON, 'CAMERA', 'home-action-btn--primary', () => this.handleCamera())
     const photosBtn = this.makeActionBtn(PHOTOS_ICON, 'PHOTOS', 'home-action-btn--accent', () => this.handleLibrary())
     const searchAccess = getSearchAccess(settings, navigator.onLine)
-    const searchBtn = this.makeActionBtn(HOME_SEARCH_ICON, 'SEARCH', 'home-action-btn--accent', () => this.router.navigate('#/search'))
+    const searchStateLabel = !searchAccess.allowed
+      ? searchAccess.reason === 'offline' ? 'NO INTERNET' : 'PARENT OFF'
+      : undefined
+    const searchBtn = this.makeActionBtn(HOME_SEARCH_ICON, 'SEARCH', 'home-action-btn--accent', () => this.router.navigate('#/search'), searchStateLabel)
     if (!searchAccess.allowed) {
       searchBtn.disabled = true
       searchBtn.setAttribute('aria-disabled', 'true')
       searchBtn.title = searchAccess.reason === 'offline'
         ? 'Connect to the internet to search.'
         : 'Turn on Internet Search in Settings.'
-      searchBtn.style.opacity = '0.55'
-      searchBtn.style.cursor = 'not-allowed'
+      searchBtn.setAttribute('data-search-disabled-reason', searchAccess.reason)
     }
 
     actionRow.appendChild(cameraBtn)
@@ -241,33 +243,36 @@ export class HomeScreen extends View {
     this.root.appendChild(container)
   }
 
-  private makeActionBtn(icon: string, label: string, className: string, onClick: () => void): HTMLButtonElement {
+  private makeActionBtn(icon: string, label: string, className: string, onClick: () => void, stateLabel?: string): HTMLButtonElement {
     const btn = document.createElement('button')
     btn.className = `px-button home-action-btn ${className}`
     btn.type = 'button'
     btn.title = label
     btn.dataset.touchLabel = label
-    btn.style.cssText = `
-      flex: 0 1 300px;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      font-size: 22px;
-      padding: 20px 18px;
-      color: white;
-      font-family: var(--tc-font-display);
-      letter-spacing: 0.5px;
-    `
 
     const iconSpan = document.createElement('span')
     iconSpan.className = 'home-action-btn__icon'
     iconSpan.innerHTML = icon
 
+    const labelWrap = document.createElement('span')
+    labelWrap.className = 'home-action-btn__text'
+
     const labelSpan = document.createElement('span')
+    labelSpan.className = 'home-action-btn__label'
     labelSpan.textContent = label
+    labelWrap.appendChild(labelSpan)
+
+    if (stateLabel) {
+      const stateSpan = document.createElement('span')
+      stateSpan.className = 'home-action-btn__state'
+      stateSpan.setAttribute('data-search-state-label', stateLabel)
+      stateSpan.textContent = stateLabel
+      labelWrap.appendChild(stateSpan)
+      btn.setAttribute('aria-label', `${label}: ${stateLabel}`)
+    }
 
     btn.appendChild(iconSpan)
-    btn.appendChild(labelSpan)
+    btn.appendChild(labelWrap)
     btn.addEventListener('click', onClick)
     return btn
   }

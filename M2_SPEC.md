@@ -61,7 +61,7 @@ This milestone is not about adding every available source or tool. It is about m
 ### Local Import and Camera
 
 - Photo import accepts image files only.
-- Multiple selected photos do not break the flow; either queue clearly or process one-at-a-time.
+- Multiple selected photos do not break the flow; the preview shows when more selected photos are waiting.
 - Camera capture uses `capture="environment"` where supported.
 - Camera fallback is acceptable where the browser does not expose direct capture.
 - Cancelling the picker/camera does not show an error toast.
@@ -73,6 +73,7 @@ This milestone is not about adding every available source or tool. It is about m
 - Default difficulty comes from parent settings and starts easy by default.
 - Preview makes the output feel predictable enough for the child to start.
 - Any visible extra control must have a clear child-facing purpose.
+- Detailed tuning controls such as the meter, slider, and stats stay behind MORE by default.
 - Hex-circle remains available as a child-requested shape option.
 - High-resolution controls are absent from the default M2 path unless deliberately hidden behind an internal flag.
 
@@ -121,7 +122,7 @@ This milestone is not about adding every available source or tool. It is about m
 
 - Keep `HEX CIRCLE` available and verify that children understand it as a shape choice.
 - Keep `FILL/FIT` only if the preview makes the difference obvious.
-- Ensure default slider, preview cards, stats, and start action all agree.
+- Keep quick preview cards and START as the primary path; the slider, meter, and stats may remain behind MORE as fine-tuning.
 - Keep all controls at least 44px and readable on portrait tablet widths.
 
 ### P1 - Improve visible search-disabled states

@@ -171,6 +171,8 @@ describe('DifficultyPicker imported image retry', () => {
     convertFromBitmapInWorkerMock.mockResolvedValueOnce(makeOutput())
 
     screen.mount(root)
+    expect(root.querySelector('[data-import-queue-badge="1"]')?.textContent).toBe('1 MORE PHOTO')
+
     root.querySelector<HTMLButtonElement>('#diff-start-btn')!.click()
     await flushAsync()
 
@@ -179,5 +181,30 @@ describe('DifficultyPicker imported image retry', () => {
     const next = ImportStaging.take()
     expect(next?.suggestedTitle).toBe('Second Photo')
     expect(next?.bitmap).toBe(queuedBitmap)
+  })
+
+  it('clears queued library images when the child backs out', () => {
+    const staged: StagedImage = {
+      bitmap: makeBitmap(),
+      imageBlob: new Blob(['first image'], { type: 'image/jpeg' }),
+      suggestedTitle: 'First Photo',
+      origin: 'library',
+    }
+    ImportStaging.enqueue([
+      {
+        imageBlob: new Blob(['second image'], { type: 'image/jpeg' }),
+        suggestedTitle: 'Second Photo',
+        origin: 'library',
+      },
+    ])
+    const router = makeRouter()
+    const screen = new DifficultyPicker(router, makeStore(), null, staged)
+    const root = document.createElement('div')
+
+    screen.mount(root)
+    root.querySelector<HTMLButtonElement>('#diff-back-btn')!.click()
+
+    expect(ImportStaging.queuedCount()).toBe(0)
+    expect(router.navigate).toHaveBeenCalledWith('#/')
   })
 })
